@@ -2,6 +2,7 @@ import { Audio } from "expo-av";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import { Button, StyleSheet, View } from "react-native";
+import supabase from "./src/supabaseClient";
 
 export default function App() {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
@@ -20,6 +21,7 @@ export default function App() {
       });
 
       console.log("Starting recording...");
+
       const { recording } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
@@ -32,7 +34,7 @@ export default function App() {
 
   async function stopRecording() {
     console.log("Stopping recording...");
-    setRecording(null);
+
     await recording?.stopAndUnloadAsync();
     await Audio.setAudioModeAsync({
       allowsRecordingIOS: false,
@@ -40,8 +42,30 @@ export default function App() {
 
     const uri = recording?.getURI();
     console.log("Recording stopped and stored at ", uri);
-    console.log("RECODING DATA: ", recording);
+    console.log("RECORDING DATA: ", recording);
+
+    // try {
+
+    //   const { data, error } = await supabase.functions.invoke("hello", {
+    //     body: JSON.stringify({
+    //       name: "Joe",
+    //     }),
+    //   });
+
+    //   console.log("DATA:", data);
+    // } catch (error) {
+    //   console.log("ERROR: ", error);
+    // }
+
+    // if (uri) {
+    //   const { sound } = await Audio.Sound.createAsync({ uri });
+    //   await sound.playAsync();
+    // }
+
+    setRecording(null);
   }
+
+  async function playRecording() {}
 
   return (
     <View style={styles.container}>
