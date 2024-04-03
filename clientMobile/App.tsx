@@ -2,6 +2,9 @@ import { Audio } from "expo-av";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import { Button, StyleSheet, View } from "react-native";
+import * as FileSystem from "expo-file-system";
+// import { createClient } from "@supabase/supabase-js";
+import { SUPABASE_URL } from "@env";
 import supabase from "./src/supabaseClient";
 
 export default function App() {
@@ -40,32 +43,48 @@ export default function App() {
       allowsRecordingIOS: false,
     });
 
-    const uri = recording?.getURI();
-    console.log("Recording stopped and stored at ", uri);
-    console.log("RECORDING DATA: ", recording);
-
-    // try {
-
-    //   const { data, error } = await supabase.functions.invoke("hello", {
-    //     body: JSON.stringify({
-    //       name: "Joe",
-    //     }),
-    //   });
-
-    //   console.log("DATA:", data);
-    // } catch (error) {
-    //   console.log("ERROR: ", error);
-    // }
-
-    // if (uri) {
-    //   const { sound } = await Audio.Sound.createAsync({ uri });
-    //   await sound.playAsync();
-    // }
+    const recordingUri = recording?.getURI();
+    if (recordingUri) {
+      await processRecording(recordingUri);
+    }
 
     setRecording(null);
   }
 
-  async function playRecording() {}
+  async function processRecording(recordingUri: string) {
+    try {
+      const audioBase64String = await FileSystem.readAsStringAsync(
+        recordingUri,
+        {
+          encoding: FileSystem.EncodingType.Base64,
+        }
+      );
+
+      await invokeSupabaseFunction(audioBase64String);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("Error invoking Supabase function: ", error.message);
+        console.error((error as Error).stack);
+      }
+    }
+  }
+
+  async function invokeSupabaseFunction(audioBase64String: string) {
+    try {
+      const { data: responseData, error: responseError } =
+        await supabase.functions.invoke("process-user-recording", {
+          body: audioBase64String,
+        });
+
+      console.log("RESPONSE DATA:", responseData);
+      console.log("RESPONSE ERROR:", responseError);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("Error invoking Supabase function: ", error.message);
+        console.error((error as Error).stack);
+      }
+    }
+  }
 
   return (
     <View style={styles.container}>

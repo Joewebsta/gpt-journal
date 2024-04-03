@@ -1,25 +1,39 @@
-console.log("Hello from Functions!");
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.41.1";
+import * as base64 from "https://denopkg.com/chiefbiiko/base64/mod.ts";
+import OpenAI from "https://deno.land/x/openai@v4.32.1/mod.ts";
 
-Deno.serve(async (req) => {
-  const { name } = await req.json();
-  const data = {
-    message: `Hello ${name}!`,
-  };
+const supabase = createClient(
+  `${Deno.env.get("SUPA_BASE_URL")}`,
+  `${Deno.env.get("SUPA_BASE_ANON_KEY")}`,
+);
+
+// const openai = new OpenAI({ apiKey: '' });
+
+Deno.serve(async (request) => {
+  try {
+    const audioBase64String = await request.text();
+
+    // Store the audio file in Supabase Storage
+    const audioBytes: Uint8Array = base64.toUint8Array(audioBase64String);
+
+    const timestamp = +new Date();
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("recordings")
+      .upload(`anon/recording-${timestamp}.mp3`, audioBytes, {
+        contentType: "audio/mpeg",
+      });
+
+    console.log("UPLOAD DATA: ", uploadData);
+    console.log("UPLOAD ERROR: ", uploadError);
+
+    // Transcribe the audio file using OpenAI's Speech-to-Text API
+    // console.log("CLIENT: ", client);
+  } catch (error) {
+    console.log("ERROR: ", error);
+  }
 
   return new Response(
-    JSON.stringify(data),
+    JSON.stringify({ message: `Placeholder audio file` }),
     { headers: { "Content-Type": "application/json" } },
   );
 });
-
-/* To invoke locally:
-
-  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
-  2. Make an HTTP request:
-
-  curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/process-user-recording' \
-    --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
-    --header 'Content-Type: application/json' \
-    --data '{"name":"Functions"}'
-
-*/
