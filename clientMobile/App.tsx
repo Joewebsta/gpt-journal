@@ -6,6 +6,14 @@ import * as FileSystem from "expo-file-system";
 // import { createClient } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@env";
 import supabase from "./src/supabaseClient";
+import RNFS from "react-native-fs";
+import { initWhisper } from "whisper.rn";
+
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export default function App() {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
@@ -44,8 +52,49 @@ export default function App() {
     });
 
     const recordingUri = recording?.getURI();
+
+    // const whisperContext = await initWhisper({
+    //   // filePath: 'file://.../ggml-tiny.en.bin',
+    // filePath: "./assets/models/ggml-tiny.en.bin",
+    // });
+
+    // console.log("Whisper context: ", whisperContext);
+
     if (recordingUri) {
-      await processRecording(recordingUri);
+      console.log("Recording URI: ", recordingUri);
+
+      // const file = openai.files.createUploadable(recordingUri);
+
+      // const transcription = await openai.audio.transcriptions.create({
+      //   file,
+      //   model: "whisper-1",
+      // });
+
+      const form = new FormData();
+      const fileContent = await RNFS.readFile(recordingUri);
+      console.log("FILE CONTENT: ", fileContent);
+
+      // form.append("file", fileContent);
+      // form.append("model", "whisper-1");
+      // form.append("response_format", "text");
+
+      // const response = fetch("https://api.openai.com/v1/audio/transcriptions", {
+      //   method: "POST",
+      //   headers: {
+      //     Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      //   },
+      //   body: form,
+      // });
+
+      // console.log("RESPONSE: ", response);
+
+      //  curl https://api.openai.com/v1/audio/transcriptions \
+      // -H "Authorization: Bearer $OPENAI_API_KEY" \
+      // -H "Content-Type: multipart/form-data" \
+      // -F file="@/path/to/file/audio.mp3" \
+      // -F model="whisper-1"
+
+      // await processRecording(recordingUri);
     }
 
     setRecording(null);
