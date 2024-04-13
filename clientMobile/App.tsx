@@ -47,23 +47,26 @@ export default function App() {
   };
 
   useEffect(() => {
-    Voice.onSpeechError = (e: SpeechErrorEvent) => {
-      console.log("onSpeechError: ", e);
-      setState((s) => ({ ...s, error: JSON.stringify(e.error) }));
-    };
-
-    Voice.onSpeechResults = (e: SpeechResultsEvent) => {
-      if (e.value) {
-        // console.log("onSpeechResults: ", e);
-        setState((s) => ({ ...s, results: e.value! }));
-      }
-    };
+    Voice.onSpeechError = onSpeechError;
+    Voice.onSpeechResults = onSpeechResults;
 
     // Clean up function
     return () => {
       Voice.destroy().then(Voice.removeAllListeners);
     };
   }, []);
+
+  const onSpeechResults = (e: SpeechResultsEvent) => {
+    if (e.value) {
+      // console.log("onSpeechResults: ", e);
+      setState((s) => ({ ...s, results: e.value! }));
+    }
+  };
+
+  const onSpeechError = (e: SpeechErrorEvent) => {
+    console.log("onSpeechError: ", e);
+    setState((s) => ({ ...s, error: JSON.stringify(e.error) }));
+  };
 
   const startRecognizing = async () => {
     logSpacing();
@@ -76,6 +79,7 @@ export default function App() {
     //   await requestPermission();
     // }
 
+    // Reset state
     setState({
       error: "",
       results: [],
