@@ -1,4 +1,4 @@
-// import { Audio } from "expo-av";
+import { Audio } from "expo-av";
 // import * as FileSystem from "expo-file-system";
 // import { StatusBar } from "expo-status-bar";
 // import { useState } from "react";
@@ -6,11 +6,11 @@
 // import { createClient } from "@supabase/supabase-js";
 // import { SUPABASE_URL } from "@env";
 // import supabase from "./src/supabaseClient";
-// import OpenAI from "openai";
+import OpenAI from "openai";
 
-// const openai = new OpenAI({
-//   apiKey: process.env.OPENAI_API_KEY,
-// });
+const openai = new OpenAI({
+  apiKey: `${process.env.OPENAI_API_KEY}`,
+});
 
 import React, { useState, useEffect } from "react";
 import {
@@ -27,10 +27,23 @@ import Voice, {
 } from "@react-native-voice/voice";
 
 export default function App() {
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [permissionResponse, requestPermission] = Audio.usePermissions();
+  // CHANGE STATE NAME
   const [state, setState] = useState({
     error: "",
     results: [],
   });
+  const [messages, setMessages] = useState<OpenAI.ChatCompletionMessageParam[]>(
+    [{ role: "system", content: "You are a helpful assistant." }]
+  );
+
+  const logSpacing = () => {
+    console.log("");
+    console.log("");
+    console.log("");
+    console.log("");
+  };
 
   useEffect(() => {
     Voice.onSpeechError = (e: SpeechErrorEvent) => {
@@ -52,12 +65,18 @@ export default function App() {
   }, []);
 
   const startRecognizing = async () => {
+    // if (permissionResponse && permissionResponse.status !== "granted") {
+    //   console.log("Requesting permission...");
+    //   await requestPermission();
+    // }
+
     setState({
       error: "",
       results: [],
     });
 
     try {
+      // console.log("MESSAGES: ", messages);
       await Voice.start("en-US");
     } catch (e) {
       console.error(e);
@@ -66,8 +85,28 @@ export default function App() {
 
   const stopRecognizing = async () => {
     try {
-      console.log("Results: ", state.results);
+      const speechText = state.results[0];
+
+      const userMessage: OpenAI.ChatCompletionMessageParam = {
+        role: "user",
+        content: speechText,
+      };
+
+      const completion = await openai.chat.completions.create({
+        messages: [...messages, userMessage],
+        model: "gpt-3.5-turbo",
+      });
+
+      const assistantMessage = completion.choices[0].message;
+
+      // CGPT MUST SPEAK THE RESPONSE!
+      logSpacing();
+      console.log("STOP RECOGNIZING: GPT MESSAGE:");
+      console.log(assistantMessage.content);
+      logSpacing();
+
       await Voice.stop();
+      setMessages((messages) => [...messages, userMessage, assistantMessage]);
     } catch (e) {
       console.error(e);
     }
