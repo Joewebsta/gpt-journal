@@ -8,8 +8,9 @@ import { Audio } from "expo-av";
 // import supabase from "./src/supabaseClient";
 import OpenAI from "openai";
 
+// Why is "export" appended to the api key?
 const openai = new OpenAI({
-  apiKey: `${process.env.OPENAI_API_KEY}`,
+  apiKey: `${process.env.OPENAI_API_KEY!.slice(0, -6)}`,
 });
 
 import React, { useState, useEffect } from "react";
@@ -65,6 +66,11 @@ export default function App() {
   }, []);
 
   const startRecognizing = async () => {
+    logSpacing();
+    console.log("MESSAGES STATE: ", messages);
+
+    logSpacing();
+
     // if (permissionResponse && permissionResponse.status !== "granted") {
     //   console.log("Requesting permission...");
     //   await requestPermission();
@@ -112,24 +118,15 @@ export default function App() {
     }
   };
 
-  const cancelRecognizing = async () => {
-    try {
-      await Voice.cancel();
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const destroyRecognizer = async () => {
+  const reset = async () => {
     try {
       await Voice.destroy();
     } catch (e) {
       console.error(e);
     }
-    setState({
-      error: "",
-      results: [],
-    });
+
+    setState({ error: "", results: [] });
+    setMessages([{ role: "system", content: "You are a helpful assistant." }]);
   };
 
   const styles = StyleSheet.create({
@@ -168,12 +165,8 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.welcome}>Welcome to React Native Voice!</Text>
-      <Text style={styles.instructions}>
-        Press the button and start speaking.
-      </Text>
-      <Text style={styles.stat}>{`Error: ${state.error}`}</Text>
       <Text style={styles.stat}>Results</Text>
+      <Text style={styles.stat}>{`Error: ${state.error}`}</Text>
       {state.results.map((result, index) => {
         return (
           <Text key={`result-${index}`} style={styles.stat}>
@@ -187,11 +180,8 @@ export default function App() {
       <TouchableHighlight onPress={stopRecognizing}>
         <Text style={styles.action}>Stop Recognizing</Text>
       </TouchableHighlight>
-      <TouchableHighlight onPress={cancelRecognizing}>
-        <Text style={styles.action}>Cancel</Text>
-      </TouchableHighlight>
-      <TouchableHighlight onPress={destroyRecognizer}>
-        <Text style={styles.action}>Destroy</Text>
+      <TouchableHighlight onPress={reset}>
+        <Text style={styles.action}>Reset</Text>
       </TouchableHighlight>
     </View>
   );
