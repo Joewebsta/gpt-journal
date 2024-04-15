@@ -5,8 +5,13 @@ import Voice, {
   SpeechResultsEvent,
 } from "@react-native-voice/voice";
 
+interface RecognizerState {
+  error: string;
+  results: string[];
+}
+
 export const useVoiceRecognition = () => {
-  const [state, setState] = useState({
+  const [recognizerState, setState] = useState<RecognizerState>({
     error: "",
     results: [],
   });
@@ -34,7 +39,7 @@ export const useVoiceRecognition = () => {
   };
 
   const startRecognizing = async () => {
-    resetState();
+    resetRecognizerState();
 
     try {
       await Voice.start("en-US");
@@ -51,18 +56,33 @@ export const useVoiceRecognition = () => {
     }
   };
 
-  const resetState = () => {
-    setState({
-      error: "",
-      results: [],
-    });
+  const destroyRecognizerState = async () => {
+    try {
+      await Voice.destroy();
+    } catch (e) {
+      console.log(e);
+    }
+
+    resetRecognizerState();
+  };
+
+  const resetRecognizerState = async () => {
+    try {
+      setState({
+        error: "",
+        results: [],
+      });
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return {
-    state,
+    recognizerState,
     setState,
-    resetState,
     startRecognizing,
     stopRecognizing,
+    destroyRecognizerState,
+    resetRecognizerState,
   };
 };
