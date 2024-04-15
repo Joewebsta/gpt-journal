@@ -16,6 +16,25 @@ export const useVoiceRecognition = () => {
     results: [],
   });
 
+  // useCallback to memoize callback functions
+  const onSpeechResults = useCallback((e: SpeechResultsEvent) => {
+    if (e.value) {
+      setState((s) => ({ ...s, results: e.value! }));
+    }
+  }, []);
+
+  const onSpeechError = useCallback((e: SpeechErrorEvent) => {
+    console.log("onSpeechError: ", e);
+    setState((s) => ({ ...s, error: JSON.stringify(e.error) }));
+  }, []);
+
+  const resetRecognizerState = useCallback(() => {
+    setState({
+      error: "",
+      results: [],
+    });
+  }, []);
+
   useEffect(() => {
     Voice.onSpeechError = onSpeechError;
     Voice.onSpeechResults = onSpeechResults;
@@ -24,58 +43,33 @@ export const useVoiceRecognition = () => {
     return () => {
       Voice.destroy().then(Voice.removeAllListeners);
     };
-  }, []);
+  }, [onSpeechError, onSpeechResults]);
 
-  const onSpeechResults = (e: SpeechResultsEvent) => {
-    if (e.value) {
-      // console.log("onSpeechResults: ", e);
-      setState((s) => ({ ...s, results: e.value! }));
-    }
-  };
-
-  const onSpeechError = (e: SpeechErrorEvent) => {
-    console.log("onSpeechError: ", e);
-    setState((s) => ({ ...s, error: JSON.stringify(e.error) }));
-  };
-
-  const startRecognizing = async () => {
+  const startRecognizing = useCallback(async () => {
     resetRecognizerState();
-
     try {
       await Voice.start("en-US");
     } catch (e) {
       console.error(e);
     }
-  };
+  }, [resetRecognizerState]);
 
-  const stopRecognizing = async () => {
+  const stopRecognizing = useCallback(async () => {
     try {
       await Voice.stop();
     } catch (e) {
       console.error(e);
     }
-  };
+  }, []);
 
-  const destroyRecognizerState = async () => {
+  const destroyRecognizerState = useCallback(async () => {
     try {
       await Voice.destroy();
     } catch (e) {
       console.log(e);
     }
-
     resetRecognizerState();
-  };
-
-  const resetRecognizerState = async () => {
-    try {
-      setState({
-        error: "",
-        results: [],
-      });
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  }, [resetRecognizerState]);
 
   return {
     recognizerState,
