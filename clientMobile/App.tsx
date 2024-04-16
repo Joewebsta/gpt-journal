@@ -2,13 +2,24 @@ import OpenAI from "openai";
 import React, { useState } from "react";
 import { StyleSheet, Text, TouchableHighlight, View } from "react-native";
 import { useVoiceRecognition } from "./hooks/useVoiceRecognition";
+import { Audio } from "expo-av";
+import * as FileSystem from "expo-file-system";
 
 // Why is "export" appended to the api key?
 const openai = new OpenAI({
   apiKey: `${process.env.OPENAI_API_KEY!.slice(0, -6)}`,
 });
 
+Audio.setAudioModeAsync({
+  allowsRecordingIOS: false,
+  staysActiveInBackground: false,
+  playsInSilentModeIOS: true,
+  shouldDuckAndroid: true,
+  playThroughEarpieceAndroid: false,
+});
+
 export default function App() {
+  const [permissionResponse, requestPermission] = Audio.usePermissions();
   const [messages, setMessages] = useState<OpenAI.ChatCompletionMessageParam[]>(
     [{ role: "system", content: "You are a helpful assistant." }]
   );
@@ -17,11 +28,27 @@ export default function App() {
     recognizerState,
     startRecognizing,
     stopRecognizing,
-    destroyRecognizerState,
+    destroyRecognizer,
     resetRecognizerState,
   } = useVoiceRecognition();
 
-  const startSpeaking = () => {
+  const logSpacing = () => {
+    console.log("");
+    console.log("");
+    console.log("");
+    console.log("");
+  };
+
+  const startSpeaking = async () => {
+    if (permissionResponse && permissionResponse.status !== "granted") {
+      console.log("Requesting permission...");
+      await requestPermission();
+    }
+
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: true,
+      playsInSilentModeIOS: true,
+    });
     startRecognizing();
   };
 
@@ -42,6 +69,46 @@ export default function App() {
       });
 
       const assistantMessage = completion.choices[0].message;
+      logSpacing();
+      console.log("STOP RECOGNIZING: GPT MESSAGE:");
+      console.log(assistantMessage.content);
+      logSpacing();
+
+      // CGPT MUST SPEAK THE RESPONSE!
+
+      const options = {
+        method: "POST",
+        headers: {
+          "xi-api-key": "a607a3d238182db7e2db7ff4af6f9513",
+          "Content-Type": "application/json",
+        },
+        body: `{"text":"${assistantMessage.content}","voice_settings":{"stability":0.5,"similarity_boost":0.5,"use_speaker_boost":true}}`,
+      };
+
+      try {
+        const response = await fetch(
+          "https://api.elevenlabs.io/v1/text-to-speech/m6hNAS1HbQy7yoonXYT0",
+          options
+        );
+        const voiceAudioBlob = await response.blob();
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          if (e.target && typeof e.target.result === "string") {
+            // data:audio/mpeg;base64,....(actual base64 data)...
+            const audioData = e.target.result.split(",")[1];
+
+            // Write the audio data to a local file
+            const path = await writeAudioToFile(audioData);
+
+            await playFromPath(path);
+            // destroyRecognizer();
+          }
+        };
+        reader.readAsDataURL(voiceAudioBlob);
+      } catch (error) {
+        console.log(error);
+      }
 
       setMessages((messages) => [...messages, userMessage, assistantMessage]);
     } catch (e) {
@@ -49,9 +116,27 @@ export default function App() {
     }
   };
 
+  const writeAudioToFile = async (audioData: string) => {
+    const path = FileSystem.documentDirectory + "temp.mp3";
+    await FileSystem.writeAsStringAsync(path, audioData, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    return path;
+  };
+
+  async function playFromPath(path: string) {
+    try {
+      const soundObject = new Audio.Sound();
+      await soundObject.loadAsync({ uri: path });
+      await soundObject.playAsync();
+    } catch (error) {
+      console.log("An error occurred while playing the audio:", error);
+    }
+  }
+
   const resetConversation = async () => {
     resetRecognizerState();
-    destroyRecognizerState();
+    destroyRecognizer();
     setMessages([{ role: "system", content: "You are a helpful assistant." }]);
   };
 

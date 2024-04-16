@@ -62,7 +62,7 @@ export const useVoiceRecognition = () => {
     }
   }, []);
 
-  const destroyRecognizerState = useCallback(async () => {
+  const destroyRecognizer = useCallback(async () => {
     try {
       await Voice.destroy();
     } catch (e) {
@@ -76,7 +76,7 @@ export const useVoiceRecognition = () => {
     setState,
     startRecognizing,
     stopRecognizing,
-    destroyRecognizerState,
+    destroyRecognizer,
     resetRecognizerState,
   };
 };
