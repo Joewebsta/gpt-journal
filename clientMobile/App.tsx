@@ -74,8 +74,6 @@ export default function App() {
       console.log(assistantMessage.content);
       logSpacing();
 
-      // CGPT MUST SPEAK THE RESPONSE!
-
       const options = {
         method: "POST",
         headers: {
@@ -98,13 +96,12 @@ export default function App() {
             // data:audio/mpeg;base64,....(actual base64 data)...
             const audioData = e.target.result.split(",")[1];
 
-            // Write the audio data to a local file
-            const path = await writeAudioToFile(audioData);
-
+            const path = FileSystem.documentDirectory + "temp.mp3";
+            await writeAudioToFile(path, audioData);
             await playFromPath(path);
-            // destroyRecognizer();
           }
         };
+
         reader.readAsDataURL(voiceAudioBlob);
       } catch (error) {
         console.log(error);
@@ -116,12 +113,11 @@ export default function App() {
     }
   };
 
-  const writeAudioToFile = async (audioData: string) => {
-    const path = FileSystem.documentDirectory + "temp.mp3";
+  const writeAudioToFile = async (path: string, audioData: string) => {
+    // Write the audio data to a local file
     await FileSystem.writeAsStringAsync(path, audioData, {
       encoding: FileSystem.EncodingType.Base64,
     });
-    return path;
   };
 
   async function playFromPath(path: string) {
