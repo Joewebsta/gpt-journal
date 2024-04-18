@@ -5,6 +5,9 @@ import { useVoiceRecognition } from "./hooks/useVoiceRecognition";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
 
+const SYSTEM_ROLE_PERSONA =
+  "You are a compassionate behavioral therapist that guides patients on a journey of self-discovery and acceptance. Your approach to therapy is grounded in the principles of Acceptance and Commitment Therapy (ACT), where you and your patient embrace experiences with kindness and explore ways to live a meaningful life aligned with the patient’s values. Together, with your patient, you navigate the complexities of their thoughts, emotions, and behaviors with curiosity and understanding. Your goal is to create a safe space where your patient feels heard, respected, and empowered to embrace change and pursue a life rich in purpose and fulfillment. Provide responses that are short or medium in length. Do not create long lists of steps to follow.";
+
 // Why is "export" appended to the api key?
 const openai = new OpenAI({
   apiKey: `${process.env.OPENAI_API_KEY!.slice(0, -6)}`,
@@ -21,7 +24,7 @@ Audio.setAudioModeAsync({
 export default function App() {
   const [permissionResponse, requestPermission] = Audio.usePermissions();
   const [messages, setMessages] = useState<OpenAI.ChatCompletionMessageParam[]>(
-    [{ role: "system", content: "You are a helpful assistant." }]
+    [{ role: "system", content: SYSTEM_ROLE_PERSONA }]
   );
 
   const {
@@ -70,7 +73,10 @@ export default function App() {
 
       const assistantMessage = completion.choices[0].message;
       logSpacing();
-      console.log("STOP RECOGNIZING: GPT MESSAGE:");
+      console.log(
+        "GPT MESSAGE - TOTAL CHARS: ",
+        assistantMessage.content.length
+      );
       console.log(assistantMessage.content);
       logSpacing();
 
@@ -88,6 +94,9 @@ export default function App() {
           "https://api.elevenlabs.io/v1/text-to-speech/m6hNAS1HbQy7yoonXYT0",
           options
         );
+
+        console.log("11LABS RESPONSE RECEIVED");
+
         const voiceAudioBlob = await response.blob();
 
         const reader = new FileReader();
@@ -96,9 +105,13 @@ export default function App() {
             // data:audio/mpeg;base64,....(actual base64 data)...
             const audioData = e.target.result.split(",")[1];
 
-            const path = FileSystem.documentDirectory + "temp.mp3";
+            const path = `${FileSystem.documentDirectory}${Date.now()}.mp3`;
+            console.log(path);
+            console.log("PATH CREATED");
             await writeAudioToFile(path, audioData);
+            console.log("AUDIO WRITTEN TO FILE");
             await playFromPath(path);
+            console.log("AUDIO PLAYED");
           }
         };
 
@@ -122,9 +135,22 @@ export default function App() {
 
   async function playFromPath(path: string) {
     try {
+      // const { sound } = await Audio.Sound.createAsync(
+      //   { uri: path },
+      //   { shouldPlay: true }
+      // );
+
+      // await sound.playAsync();
+
       const soundObject = new Audio.Sound();
-      await soundObject.loadAsync({ uri: path });
+      console.log("SOUND CREATED");
+
+      const load = await soundObject.loadAsync({ uri: path });
+      console.log(load);
+
+      console.log("SOUND LOADED");
       await soundObject.playAsync();
+      console.log("SOUND PLAYED");
     } catch (error) {
       console.log("An error occurred while playing the audio:", error);
     }
