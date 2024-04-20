@@ -1,20 +1,14 @@
+import { createClient } from "@supabase/supabase-js";
+import { Audio } from "expo-av";
+import * as FileSystem from "expo-file-system";
 import OpenAI from "openai";
 import React, { useState } from "react";
 import { StyleSheet, Text, TouchableHighlight, View } from "react-native";
 import { useVoiceRecognition } from "./hooks/useVoiceRecognition";
-import { Audio } from "expo-av";
-import * as FileSystem from "expo-file-system";
-import { SUPABASE_URL } from "@env";
-import { createClient } from "@supabase/supabase-js";
 // import supabase from "./src/supabaseClient";
 
 const SYSTEM_ROLE_PERSONA =
   "You are a compassionate behavioral therapist that guides patients on a journey of self-discovery and acceptance. Your approach to therapy is grounded in the principles of Acceptance and Commitment Therapy (ACT), where you and your patient embrace experiences with kindness and explore ways to live a meaningful life aligned with the patient’s values. Together, with your patient, you navigate the complexities of their thoughts, emotions, and behaviors with curiosity and understanding. Your goal is to create a safe space where your patient feels heard, respected, and empowered to embrace change and pursue a life rich in purpose and fulfillment. Provide responses that are short or medium in length. Do not create long lists of steps to follow.";
-
-// Why is "export" appended to the api key?
-const openai = new OpenAI({
-  apiKey: `${process.env.OPENAI_API_KEY!.slice(0, -6)}`,
-});
 
 // LOCAL
 const supabase = createClient(
@@ -52,13 +46,6 @@ export default function App() {
     resetRecognizerState,
   } = useVoiceRecognition();
 
-  const logSpacing = () => {
-    console.log("");
-    console.log("");
-    console.log("");
-    console.log("");
-  };
-
   const startSpeaking = async () => {
     if (permissionResponse && permissionResponse.status !== "granted") {
       console.log("Requesting permission...");
@@ -83,89 +70,32 @@ export default function App() {
           body: JSON.stringify({ speechText, messages }),
         });
 
-      const userMessage = responseData.userMessage;
-      const assistantMessage = responseData.assistantMessage;
-      // const TTSData = responseData.TTSData;
+      const { userMessage, assistantMessage, encodedMp3Data } = responseData;
 
-      console.log("RESPONSE DATA - user:", userMessage);
-      console.log("RESPONSE DATA - assistant", assistantMessage);
-      // console.log("RESPONSE DATA - TTS", TTSData);
+      // console.log("RESPONSE DATA - user:", userMessage);
+      // console.log("RESPONSE DATA - assistant", assistantMessage);
+      // console.log("RESPONSE DATA - TTS", encodedMp3Data);
       // console.log("RESPONSE DATA:", responseData);
       // console.log("RESPONSE ERROR:", responseError);
 
       setMessages((messages) => [...messages, userMessage, assistantMessage]);
+
+      const path = `${FileSystem.documentDirectory}${Date.now()}.mp3`;
+      console.log(path);
+      console.log("PATH CREATED");
+      await writeAudioToFile(path, encodedMp3Data);
+      console.log("AUDIO WRITTEN TO FILE");
+      await playFromPath(path);
+      console.log("AUDIO PLAYED");
     } catch (error) {
       if (error instanceof Error) {
         console.error("Error invoking Supabase function: ", error.message);
         console.error((error as Error).stack);
       }
     }
-
-    try {
-      // const userMessage: OpenAI.ChatCompletionMessageParam = {
-      //   role: "user",
-      //   content: speechText,
-      // };
-
-      // const completion = await openai.chat.completions.create({
-      //   messages: [...messages, userMessage],
-      //   model: "gpt-3.5-turbo",
-      // });
-
-      // const assistantMessage = completion.choices[0].message;
-      // logSpacing();
-      // console.log(
-      //   "GPT MESSAGE - TOTAL CHARS: ",
-      //   assistantMessage.content.length
-      // );
-      // console.log(assistantMessage.content);
-      // logSpacing();
-
-      const assistantMessage = { content: "Hello world" };
-
-      try {
-        const response = await openai.audio.speech.create({
-          model: "tts-1",
-          voice: "nova",
-          input: assistantMessage.content!,
-        });
-        // console.log("OPENAI TTS RESPONSE: ", response);
-
-        const voiceAudioBlob = await response.blob();
-        console.log("OPENAI BLOB: ", voiceAudioBlob);
-
-        // const response = await fetch(
-        //   "https://api.elevenlabs.io/v1/text-to-speech/m6hNAS1HbQy7yoonXYT0",
-        //   options
-        // );
-        // console.log("11LABS RESPONSE RECEIVED");
-        // const voiceAudioBlob = await response.blob();
-
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-          if (e.target && typeof e.target.result === "string") {
-            // data:audio/mpeg;base64,....(actual base64 data)...
-            const audioData = e.target.result.split(",")[1];
-            const path = `${FileSystem.documentDirectory}${Date.now()}.mp3`;
-            console.log(path);
-            console.log("PATH CREATED");
-            await writeAudioToFile(path, audioData);
-            console.log("AUDIO WRITTEN TO FILE");
-            await playFromPath(path);
-            console.log("AUDIO PLAYED");
-          }
-        };
-        reader.readAsDataURL(voiceAudioBlob);
-      } catch (error) {
-        console.log(error);
-      }
-    } catch (e) {
-      console.error(e);
-    }
   };
 
   const writeAudioToFile = async (path: string, audioData: string) => {
-    // Write the audio data to a local file
     await FileSystem.writeAsStringAsync(path, audioData, {
       encoding: FileSystem.EncodingType.Base64,
     });
@@ -173,13 +103,6 @@ export default function App() {
 
   async function playFromPath(path: string) {
     try {
-      // const { sound } = await Audio.Sound.createAsync(
-      //   { uri: path },
-      //   { shouldPlay: true }
-      // );
-
-      // await sound.playAsync();
-
       const soundObject = new Audio.Sound();
       console.log("SOUND CREATED");
 

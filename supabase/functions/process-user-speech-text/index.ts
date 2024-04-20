@@ -1,13 +1,11 @@
 // import { createClient } from "https://esm.sh/@supabase/supabase-js@2.41.1";
+import { encodeBase64 } from "https://deno.land/std@0.223.0/encoding/base64.ts";
 import OpenAI from "https://deno.land/x/openai@v4.32.1/mod.ts";
 
 const openai = new OpenAI({ apiKey: `${Deno.env.get("OPENAI_API_KEY")}` });
 
 Deno.serve(async (req) => {
   const { speechText, messages } = await req.json();
-
-  // console.log("OPENAI API KEY: ", Deno.env.get("OPENAI_API_KEY"));
-  // console.log("OPENAI API KEY: ", openai);
 
   try {
     const userMessage: OpenAI.ChatCompletionMessageParam = {
@@ -22,26 +20,24 @@ Deno.serve(async (req) => {
 
     const assistantMessage = completion.choices[0].message;
 
-    const mp3 = await openai.audio.speech.create({
+    const mp3Response = await openai.audio.speech.create({
       model: "tts-1",
       voice: "nova",
       input: assistantMessage.content!,
     });
 
-    console.log("TTS RESPONSE: ", JSON.stringify(mp3));
-    console.log("TTS TYPE: ", typeof mp3);
+    const mp3ArrayBuffer = await mp3Response.arrayBuffer();
+    const encodedMp3Data = encodeBase64(mp3ArrayBuffer);
+
+    console.log("SENDING RESPONSE!");
 
     return new Response(
-      JSON.stringify({ userMessage, assistantMessage }),
+      JSON.stringify({ userMessage, assistantMessage, encodedMp3Data }),
       { headers: { "Content-Type": "application/json" } },
     );
   } catch (error) {
     console.log(error);
   }
-
-  // console.log("SPEECH TEXT", speechText);
-  // console.log("SUPA BASE URL:", Deno.env.get("SUPABASE_URL"));
-  // console.log("SUPA BASE ANON KEY", Deno.env.get("SUPABASE_ANON_KEY"));
 
   return new Response(
     JSON.stringify(speechText),
