@@ -57,21 +57,11 @@ export default function App() {
 
       const { userMessage, assistantMessage, encodedMp3Data } = responseData;
 
-      // console.log("RESPONSE DATA - user:", userMessage);
-      // console.log("RESPONSE DATA - assistant", assistantMessage);
-      // console.log("RESPONSE DATA - TTS", encodedMp3Data);
-      // console.log("RESPONSE DATA:", responseData);
-      // console.log("RESPONSE ERROR:", responseError);
-
       setMessages((messages) => [...messages, userMessage, assistantMessage]);
 
       const path = `${FileSystem.documentDirectory}${Date.now()}.mp3`;
-      console.log(path);
-      console.log("PATH CREATED");
       await writeAudioToFile(path, encodedMp3Data);
-      console.log("AUDIO WRITTEN TO FILE");
       await playFromPath(path);
-      console.log("AUDIO PLAYED");
     } catch (error) {
       if (error instanceof Error) {
         console.error("Error invoking Supabase function: ", error.message);
@@ -89,14 +79,8 @@ export default function App() {
   async function playFromPath(path: string) {
     try {
       const soundObject = new Audio.Sound();
-      console.log("SOUND CREATED");
-
-      const load = await soundObject.loadAsync({ uri: path });
-      console.log(load);
-
-      console.log("SOUND LOADED");
+      await soundObject.loadAsync({ uri: path });
       await soundObject.playAsync();
-      console.log("SOUND PLAYED");
     } catch (error) {
       console.log("An error occurred while playing the audio:", error);
     }
