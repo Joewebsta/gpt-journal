@@ -1,14 +1,15 @@
-import {
-  SUPABASE_ANON_KEY,
-  SUPABASE_SERVICE_ROLE_KEY,
-  SUPABASE_URL,
-} from "@env";
 import { createClient } from "@supabase/supabase-js";
-// const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// LOCAL
 const supabase = createClient(
-  // "https://alqybdjzheygzqmzzlpz.supabase.co",
-  "http://192.168.4.143:54321",
-  SUPABASE_ANON_KEY,
+  "http://127.0.0.1:54321",
+  process.env.SUPABASE_ANON_KEY,
 );
+
+// PRODUCTION;
+// const supabase = createClient(
+//   process.env.SUPABASE_URL,
+//   process.env.SUPABASE_ANON_KEY
+// );
 
 export default supabase;
