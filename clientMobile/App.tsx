@@ -5,7 +5,8 @@ import { useVoiceRecognition } from "./hooks/useVoiceRecognition";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
 import { SUPABASE_URL } from "@env";
-import supabase from "./src/supabaseClient";
+import { createClient } from "@supabase/supabase-js";
+// import supabase from "./src/supabaseClient";
 
 const SYSTEM_ROLE_PERSONA =
   "You are a compassionate behavioral therapist that guides patients on a journey of self-discovery and acceptance. Your approach to therapy is grounded in the principles of Acceptance and Commitment Therapy (ACT), where you and your patient embrace experiences with kindness and explore ways to live a meaningful life aligned with the patient’s values. Together, with your patient, you navigate the complexities of their thoughts, emotions, and behaviors with curiosity and understanding. Your goal is to create a safe space where your patient feels heard, respected, and empowered to embrace change and pursue a life rich in purpose and fulfillment. Provide responses that are short or medium in length. Do not create long lists of steps to follow.";
@@ -14,6 +15,20 @@ const SYSTEM_ROLE_PERSONA =
 const openai = new OpenAI({
   apiKey: `${process.env.OPENAI_API_KEY!.slice(0, -6)}`,
 });
+
+// LOCAL
+const supabase = createClient(
+  "http://127.0.0.1:54321",
+  process.env.SUPABASE_ANON_KEY
+);
+
+// PRODUCTION;
+// const supabase = createClient(
+//   process.env.SUPABASE_URL,
+//   process.env.SUPABASE_ANON_KEY
+// );
+
+// console.log("SUPABASE:", supabase);
 
 Audio.setAudioModeAsync({
   allowsRecordingIOS: false,
@@ -62,40 +77,51 @@ export default function App() {
 
     const speechText = recognizerState.results[0];
 
-    // try {
-    //   const { data: responseData, error: responseError } =
-    //     await supabase.functions.invoke("process-user-recording", {
-    //       body: speechText,
-    //     });
+    try {
+      const { data: responseData, error: responseError } =
+        await supabase.functions.invoke("process-user-speech-text", {
+          body: JSON.stringify({ speechText, messages }),
+        });
 
-    //   console.log("RESPONSE DATA:", responseData);
-    //   console.log("RESPONSE ERROR:", responseError);
-    // } catch (error) {
-    //   if (error instanceof Error) {
-    //     console.error("Error invoking Supabase function: ", error.message);
-    //     console.error((error as Error).stack);
-    //   }
-    // }
+      const userMessage = responseData.userMessage;
+      const assistantMessage = responseData.assistantMessage;
+      // const TTSData = responseData.TTSData;
+
+      console.log("RESPONSE DATA - user:", userMessage);
+      console.log("RESPONSE DATA - assistant", assistantMessage);
+      // console.log("RESPONSE DATA - TTS", TTSData);
+      // console.log("RESPONSE DATA:", responseData);
+      // console.log("RESPONSE ERROR:", responseError);
+
+      setMessages((messages) => [...messages, userMessage, assistantMessage]);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("Error invoking Supabase function: ", error.message);
+        console.error((error as Error).stack);
+      }
+    }
 
     try {
-      const userMessage: OpenAI.ChatCompletionMessageParam = {
-        role: "user",
-        content: speechText,
-      };
+      // const userMessage: OpenAI.ChatCompletionMessageParam = {
+      //   role: "user",
+      //   content: speechText,
+      // };
 
-      const completion = await openai.chat.completions.create({
-        messages: [...messages, userMessage],
-        model: "gpt-3.5-turbo",
-      });
+      // const completion = await openai.chat.completions.create({
+      //   messages: [...messages, userMessage],
+      //   model: "gpt-3.5-turbo",
+      // });
 
-      const assistantMessage = completion.choices[0].message;
-      logSpacing();
-      console.log(
-        "GPT MESSAGE - TOTAL CHARS: ",
-        assistantMessage.content.length
-      );
-      console.log(assistantMessage.content);
-      logSpacing();
+      // const assistantMessage = completion.choices[0].message;
+      // logSpacing();
+      // console.log(
+      //   "GPT MESSAGE - TOTAL CHARS: ",
+      //   assistantMessage.content.length
+      // );
+      // console.log(assistantMessage.content);
+      // logSpacing();
+
+      const assistantMessage = { content: "Hello world" };
 
       try {
         const response = await openai.audio.speech.create({
@@ -133,8 +159,6 @@ export default function App() {
       } catch (error) {
         console.log(error);
       }
-
-      setMessages((messages) => [...messages, userMessage, assistantMessage]);
     } catch (e) {
       console.error(e);
     }
