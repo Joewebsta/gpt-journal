@@ -8,7 +8,7 @@ Deno.serve(async (req) => {
   const { speechText, messages } = await req.json();
 
   try {
-    const userMessage: OpenAI.ChatCompletionMessageParam = {
+    const userMessage = {
       role: "user",
       content: speechText,
     };

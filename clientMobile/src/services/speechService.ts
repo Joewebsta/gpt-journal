@@ -3,7 +3,7 @@ import OpenAI from "openai";
 
 export const processUserSpeechText = async (
   speechText: string,
-  messages: OpenAI.ChatCompletionMessageParam,
+  messages: OpenAI.ChatCompletionMessageParam[],
 ) => {
   try {
     const { data: responseData, error: responseError } = await supabase
