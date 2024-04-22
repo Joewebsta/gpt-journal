@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Button, StyleSheet, View } from "react-native";
 import { createClient } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@env";
-import supabase from "./src/supabaseClient";
+import supabase from "./src/clients/supabaseClient";
 
 export default function App() {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
