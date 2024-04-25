@@ -2,13 +2,20 @@ import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
 import OpenAI from "openai";
 import React, { useState } from "react";
-import { Text, TouchableHighlight, View } from "react-native";
+import { Text, Pressable, TouchableHighlight, View } from "react-native";
 import { PERSONA } from "./constants";
 import { useVoiceRecognition } from "./hooks/useVoiceRecognition";
 import { processUserSpeechText } from "./src/services/speechService";
 import { styles } from "./src/styles/appStyles";
 import { supabaseResponse } from "./types";
 import { playAudioFromPath, writeAudioToFile } from "./utils/audioUtils";
+import { IconMicrophone } from "@tabler/icons-react-native";
+
+export type ConversationPhase =
+  | "standby"
+  | "recognizing"
+  | "thinking"
+  | "speaking";
 
 Audio.setAudioModeAsync({
   allowsRecordingIOS: false,
@@ -23,6 +30,7 @@ export default function App() {
   const [messages, setMessages] = useState<OpenAI.ChatCompletionMessageParam[]>(
     [{ role: "system", content: PERSONA }]
   );
+  const [phase, setPhase] = useState<ConversationPhase>("standby");
 
   const {
     recognizerState,
@@ -43,10 +51,14 @@ export default function App() {
       playsInSilentModeIOS: true,
     });
 
+    // Phase: Standby -> Recognizing
+    setPhase("recognizing");
     startRecognizing();
   };
 
   const stopSpeaking = async () => {
+    // Phase: Recognizing -> Thinking
+    setPhase("thinking");
     stopRecognizing();
 
     const speechText = recognizerState.results[0];
@@ -62,7 +74,10 @@ export default function App() {
       setMessages((messages) => [...messages, userMessage, assistantMessage]);
 
       await writeAudioToFile(path, encodedMp3Data);
-      await playAudioFromPath(path);
+      // Phase: Thinking -> Speaking
+      await playAudioFromPath(path, setPhase);
+
+      // Phase: Speaking -> Standby
     } catch (error) {
       if (error instanceof Error) {
         console.error("Error invoking Supabase function: ", error.message);
@@ -74,6 +89,7 @@ export default function App() {
   const resetConversation = async () => {
     resetRecognizerState();
     destroyRecognizer();
+    // Phase: Standby
     setMessages([{ role: "system", content: "You are a helpful assistant." }]);
   };
 
@@ -81,6 +97,7 @@ export default function App() {
     <View style={styles.container}>
       <Text style={styles.stat}>Results</Text>
       <Text style={styles.stat}>{`Error: ${recognizerState.error}`}</Text>
+      <Text>{phase}</Text>
       {recognizerState.results.map((result, index) => {
         return (
           <Text key={`result-${index}`} style={styles.stat}>
@@ -88,9 +105,23 @@ export default function App() {
           </Text>
         );
       })}
-      <TouchableHighlight onPress={startSpeaking}>
-        <Text style={styles.action}>Start Speaking</Text>
-      </TouchableHighlight>
+      <Pressable
+        style={{
+          width: 74,
+          height: 74,
+          borderRadius: 1000,
+          backgroundColor: "#D9D9D9",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+        onPress={startSpeaking}
+      >
+        <Text style={{ marginTop: 8 }}>
+          <IconMicrophone color="black" />
+        </Text>
+      </Pressable>
+
       <TouchableHighlight onPress={stopSpeaking}>
         <Text style={styles.action}>Stop Speaking</Text>
       </TouchableHighlight>
