@@ -9,7 +9,6 @@ export const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   buttonContainer: {
-    width: "100%",
     display: "flex",
     flexDirection: "row",
     justifyContent: "center",
