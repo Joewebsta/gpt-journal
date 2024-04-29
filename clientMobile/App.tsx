@@ -99,24 +99,37 @@ export default function App() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text>Results</Text>
-      <Text>{`Error: ${recognizerState.error}`}</Text>
-      <Text>{phase}</Text>
-      {recognizerState.results.map((result, index) => {
-        return <Text key={`result-${index}`}>{result}</Text>;
-      })}
-
-      {phase === "standby" && (
-        <View style={styles.buttonContainer}>
-          <Pressable
-            style={[styles.button, { backgroundColor: "white" }]}
-          ></Pressable>
+    <>
+      <View
+        style={{
+          marginTop: 50,
+          display: "flex",
+          flexDirection: "row",
+        }}
+      >
+        <View
+          style={{
+            flex: 1,
+          }}
+        ></View>
+        <View
+          style={{
+            marginLeft: 30,
+            marginRight: 30,
+          }}
+        >
           <Pressable style={styles.button} onPress={startSpeaking}>
             <Text style={{ marginTop: 8 }}>
               <IconMicrophone color="black" />
             </Text>
           </Pressable>
+        </View>
+        <View
+          style={{
+            // backgroundColor: "green",
+            flex: 1,
+          }}
+        >
           <Pressable
             style={[styles.button, { backgroundColor: "white" }]}
             onPress={resetConversation}
@@ -126,31 +139,60 @@ export default function App() {
             </Text>
           </Pressable>
         </View>
-      )}
+      </View>
+      <View style={styles.container}>
+        <Text>Results</Text>
+        <Text>{`Error: ${recognizerState.error}`}</Text>
+        <Text>{phase}</Text>
+        {recognizerState.results.map((result, index) => {
+          return <Text key={`result-${index}`}>{result}</Text>;
+        })}
 
-      {phase === "recognizing" && (
-        <Pressable style={styles.button} onPress={stopSpeaking}>
-          <Text style={{ marginTop: 8 }}>
-            <IconPlayerStopFilled color="black" fill="black" />
-          </Text>
-        </Pressable>
-      )}
+        {phase === "standby" && (
+          <View style={styles.buttonContainer}>
+            <Pressable
+              style={[styles.button, { backgroundColor: "white" }]}
+            ></Pressable>
+            <Pressable style={styles.button} onPress={startSpeaking}>
+              <Text style={{ marginTop: 8 }}>
+                <IconMicrophone color="black" />
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.button, { backgroundColor: "white" }]}
+              onPress={resetConversation}
+            >
+              <Text style={{ marginTop: 8 }}>
+                <IconRefresh color="black" />
+              </Text>
+            </Pressable>
+          </View>
+        )}
 
-      {phase === "processing" && (
-        <Pressable style={styles.button} onPress={() => {}}>
-          <Text style={{ marginTop: 8 }}>
-            <IconLoader color="black" />
-          </Text>
-        </Pressable>
-      )}
+        {phase === "recognizing" && (
+          <Pressable style={styles.button} onPress={stopSpeaking}>
+            <Text style={{ marginTop: 8 }}>
+              <IconPlayerStopFilled color="black" fill="black" />
+            </Text>
+          </Pressable>
+        )}
 
-      {phase === "speaking" && (
-        <Pressable style={styles.button} onPress={() => {}}>
-          <Text style={{ marginTop: 8 }}>
-            <IconPlayerStopFilled color="black" fill="black" />
-          </Text>
-        </Pressable>
-      )}
-    </View>
+        {phase === "processing" && (
+          <Pressable style={styles.button} onPress={() => {}}>
+            <Text style={{ marginTop: 8 }}>
+              <IconLoader color="black" />
+            </Text>
+          </Pressable>
+        )}
+
+        {phase === "speaking" && (
+          <Pressable style={styles.button} onPress={() => {}}>
+            <Text style={{ marginTop: 8 }}>
+              <IconPlayerStopFilled color="black" fill="black" />
+            </Text>
+          </Pressable>
+        )}
+      </View>
+    </>
   );
 }
