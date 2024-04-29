@@ -1,20 +1,25 @@
+import {
+  IconLoader,
+  IconMicrophone,
+  IconPlayerStopFilled,
+  IconRefresh,
+} from "@tabler/icons-react-native";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
 import OpenAI from "openai";
 import React, { useState } from "react";
-import { Text, Pressable, TouchableHighlight, View } from "react-native";
+import { Pressable, Text, TouchableHighlight, View } from "react-native";
 import { PERSONA } from "./constants";
 import { useVoiceRecognition } from "./hooks/useVoiceRecognition";
 import { processUserSpeechText } from "./src/services/speechService";
 import { styles } from "./src/styles/appStyles";
 import { supabaseResponse } from "./types";
 import { playAudioFromPath, writeAudioToFile } from "./utils/audioUtils";
-import { IconMicrophone } from "@tabler/icons-react-native";
 
 export type ConversationPhase =
   | "standby"
   | "recognizing"
-  | "thinking"
+  | "processing"
   | "speaking";
 
 Audio.setAudioModeAsync({
@@ -58,7 +63,7 @@ export default function App() {
 
   const stopSpeaking = async () => {
     // Phase: Recognizing -> Thinking
-    setPhase("thinking");
+    setPhase("processing");
     stopRecognizing();
 
     const speechText = recognizerState.results[0];
@@ -95,39 +100,57 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.stat}>Results</Text>
-      <Text style={styles.stat}>{`Error: ${recognizerState.error}`}</Text>
+      <Text>Results</Text>
+      <Text>{`Error: ${recognizerState.error}`}</Text>
       <Text>{phase}</Text>
       {recognizerState.results.map((result, index) => {
-        return (
-          <Text key={`result-${index}`} style={styles.stat}>
-            {result}
-          </Text>
-        );
+        return <Text key={`result-${index}`}>{result}</Text>;
       })}
-      <Pressable
-        style={{
-          width: 74,
-          height: 74,
-          borderRadius: 1000,
-          backgroundColor: "#D9D9D9",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-        onPress={startSpeaking}
-      >
-        <Text style={{ marginTop: 8 }}>
-          <IconMicrophone color="black" />
-        </Text>
-      </Pressable>
 
-      <TouchableHighlight onPress={stopSpeaking}>
-        <Text style={styles.action}>Stop Speaking</Text>
-      </TouchableHighlight>
-      <TouchableHighlight onPress={resetConversation}>
-        <Text style={styles.action}>Reset</Text>
-      </TouchableHighlight>
+      {phase === "standby" && (
+        <View style={styles.buttonContainer}>
+          <Pressable
+            style={[styles.button, { backgroundColor: "white" }]}
+          ></Pressable>
+          <Pressable style={styles.button} onPress={startSpeaking}>
+            <Text style={{ marginTop: 8 }}>
+              <IconMicrophone color="black" />
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[styles.button, { backgroundColor: "white" }]}
+            onPress={resetConversation}
+          >
+            <Text style={{ marginTop: 8 }}>
+              <IconRefresh color="black" />
+            </Text>
+          </Pressable>
+        </View>
+      )}
+
+      {phase === "recognizing" && (
+        <Pressable style={styles.button} onPress={stopSpeaking}>
+          <Text style={{ marginTop: 8 }}>
+            <IconPlayerStopFilled color="black" fill="black" />
+          </Text>
+        </Pressable>
+      )}
+
+      {phase === "processing" && (
+        <Pressable style={styles.button} onPress={() => {}}>
+          <Text style={{ marginTop: 8 }}>
+            <IconLoader color="black" />
+          </Text>
+        </Pressable>
+      )}
+
+      {phase === "speaking" && (
+        <Pressable style={styles.button} onPress={() => {}}>
+          <Text style={{ marginTop: 8 }}>
+            <IconPlayerStopFilled color="black" fill="black" />
+          </Text>
+        </Pressable>
+      )}
     </View>
   );
 }
