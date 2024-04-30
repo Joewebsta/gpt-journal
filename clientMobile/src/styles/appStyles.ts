@@ -1,4 +1,3 @@
-import { IconFlagExclamation } from "@tabler/icons-react-native";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
@@ -6,13 +5,8 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-end",
     alignItems: "center",
-    paddingBottom: 40,
-  },
-  buttonContainer: {
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 30,
+    paddingBottom: 60,
+    gap: 60,
   },
   button: {
     width: 74,

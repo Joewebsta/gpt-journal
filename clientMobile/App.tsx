@@ -8,7 +8,7 @@ import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
 import OpenAI from "openai";
 import React, { useState } from "react";
-import { Pressable, Text, TouchableHighlight, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { PERSONA } from "./constants";
 import { useVoiceRecognition } from "./hooks/useVoiceRecognition";
 import { processUserSpeechText } from "./src/services/speechService";
@@ -100,31 +100,43 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Text>Results</Text>
-      <Text>{`Error: ${recognizerState.error}`}</Text>
-      <Text>{phase}</Text>
-      {recognizerState.results.map((result, index) => {
-        return <Text key={`result-${index}`}>{result}</Text>;
-      })}
+      {/* <Text>Results</Text>
+        <Text>{`Error: ${recognizerState.error}`}</Text>
+        <Text>{phase}</Text>
+        {recognizerState.results.map((result, index) => {
+          return <Text key={`result-${index}`}>{result}</Text>;
+        })} */}
+
+      <View>
+        {phase === "standby" && <Text>Press button and start speaking</Text>}
+        {phase === "recognizing" && (
+          <Text>Press button when finished speaking</Text>
+        )}
+        {phase === "processing" && <Text>Thinking...</Text>}
+        {phase === "speaking" && <Text>Press button to interrupt</Text>}
+      </View>
 
       {phase === "standby" && (
-        <View style={styles.buttonContainer}>
+        <View>
           <Pressable style={styles.button} onPress={startSpeaking}>
             <Text style={{ marginTop: 8 }}>
               <IconMicrophone color="black" />
             </Text>
           </Pressable>
-          <Pressable
-            style={[
-              styles.button,
-              { backgroundColor: "white", position: "absolute", left: 104 },
-            ]}
-            onPress={resetConversation}
-          >
-            <Text style={{ marginTop: 8 }}>
-              <IconRefresh color="black" />
-            </Text>
-          </Pressable>
+
+          {recognizerState.results.length > 0 && (
+            <Pressable
+              style={[
+                styles.button,
+                { backgroundColor: "white", position: "absolute", left: 104 },
+              ]}
+              onPress={resetConversation}
+            >
+              <Text style={{ marginTop: 8 }}>
+                <IconRefresh color="black" />
+              </Text>
+            </Pressable>
+          )}
         </View>
       )}
 
