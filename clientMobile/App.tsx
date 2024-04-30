@@ -36,6 +36,7 @@ export default function App() {
     [{ role: "system", content: PERSONA }]
   );
   const [phase, setPhase] = useState<ConversationPhase>("standby");
+  const [phaseText, setPhaseText] = useState("Press button and start speaking");
 
   const {
     recognizerState,
@@ -56,14 +57,14 @@ export default function App() {
       playsInSilentModeIOS: true,
     });
 
-    // Phase: Standby -> Recognizing
     setPhase("recognizing");
+    setPhaseText("Press button when finished speaking");
     startRecognizing();
   };
 
   const stopSpeaking = async () => {
-    // Phase: Recognizing -> Thinking
     setPhase("processing");
+    setPhaseText("Thinking...");
     stopRecognizing();
 
     const speechText = recognizerState.results[0];
@@ -79,10 +80,7 @@ export default function App() {
       setMessages((messages) => [...messages, userMessage, assistantMessage]);
 
       await writeAudioToFile(path, encodedMp3Data);
-      // Phase: Thinking -> Speaking
-      await playAudioFromPath(path, setPhase);
-
-      // Phase: Speaking -> Standby
+      await playAudioFromPath(path, setPhase, setPhaseText);
     } catch (error) {
       if (error instanceof Error) {
         console.error("Error invoking Supabase function: ", error.message);
@@ -94,26 +92,21 @@ export default function App() {
   const resetConversation = async () => {
     resetRecognizerState();
     destroyRecognizer();
-    // Phase: Standby
-    setMessages([{ role: "system", content: "You are a helpful assistant." }]);
+
+    setMessages([{ role: "system", content: PERSONA }]);
   };
 
   return (
     <View style={styles.container}>
       {/* <Text>Results</Text>
-        <Text>{`Error: ${recognizerState.error}`}</Text>
-        <Text>{phase}</Text>
-        {recognizerState.results.map((result, index) => {
-          return <Text key={`result-${index}`}>{result}</Text>;
-        })} */}
+      <Text>{`Error: ${recognizerState.error}`}</Text>
+      <Text>{phase}</Text>
+      {recognizerState.results.map((result, index) => {
+        return <Text key={`result-${index}`}>{result}</Text>;
+      })} */}
 
       <View>
-        {phase === "standby" && <Text>Press button and start speaking</Text>}
-        {phase === "recognizing" && (
-          <Text>Press button when finished speaking</Text>
-        )}
-        {phase === "processing" && <Text>Thinking...</Text>}
-        {phase === "speaking" && <Text>Press button to interrupt</Text>}
+        <Text>{phaseText}</Text>
       </View>
 
       {phase === "standby" && (
@@ -124,7 +117,7 @@ export default function App() {
             </Text>
           </Pressable>
 
-          {recognizerState.results.length > 0 && (
+          {messages.length > 1 && (
             <Pressable
               style={[
                 styles.button,

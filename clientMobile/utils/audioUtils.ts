@@ -11,6 +11,7 @@ export const writeAudioToFile = async (path: string, audioData: string) => {
 export async function playAudioFromPath(
   path: string,
   setPhase: React.Dispatch<React.SetStateAction<ConversationPhase>>,
+  setPhaseText: React.Dispatch<React.SetStateAction<string>>,
 ) {
   try {
     // const { sound } = await Audio.Sound.createAsync();
@@ -18,13 +19,13 @@ export async function playAudioFromPath(
     soundObject.setOnPlaybackStatusUpdate((status) => {
       if (status.isPlaying) {
         setPhase("speaking");
+        setPhaseText("Press button to interrupt");
       }
 
       if (status.didJustFinish) {
         setPhase("standby");
+        setPhaseText("Press button and start speaking");
       }
-      // console.log("DID JUST FINISH?", status.didJustFinish);
-      // console.log("AUDIO STATUS:", status);
     });
     await soundObject.loadAsync({ uri: path });
     await soundObject.playAsync();
