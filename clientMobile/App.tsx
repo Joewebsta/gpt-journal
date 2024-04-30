@@ -15,6 +15,12 @@ import { processUserSpeechText } from "./src/services/speechService";
 import { styles } from "./src/styles/appStyles";
 import { supabaseResponse } from "./types";
 import { playAudioFromPath, writeAudioToFile } from "./utils/audioUtils";
+import { Svg, Circle } from "react-native-svg";
+import Animated, {
+  useSharedValue,
+  useAnimatedProps,
+  withTiming,
+} from "react-native-reanimated";
 
 export type ConversationPhase =
   | "standby"
@@ -29,6 +35,8 @@ Audio.setAudioModeAsync({
   shouldDuckAndroid: true,
   playThroughEarpieceAndroid: false,
 });
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 export default function App() {
   const [permissionResponse, requestPermission] = Audio.usePermissions();
@@ -98,6 +106,38 @@ export default function App() {
 
   return (
     <View style={styles.container}>
+      <View style={{ position: "relative" }}>
+        <Svg
+          style={{
+            height: 250,
+            width: 250,
+            position: "relative",
+          }}
+        >
+          <AnimatedCircle
+            cx="50%"
+            cy="50%"
+            r={120}
+            // animatedProps={animatedProps}
+          />
+        </Svg>
+        <Svg
+          style={{
+            height: 250,
+            width: 250,
+            position: "absolute",
+          }}
+        >
+          <AnimatedCircle
+            cx="50%"
+            cy="50%"
+            r={110}
+            fill="white"
+            // animatedProps={animatedProps}
+          />
+        </Svg>
+      </View>
+
       {/* <Text>Results</Text>
       <Text>{`Error: ${recognizerState.error}`}</Text>
       <Text>{phase}</Text>
