@@ -8,19 +8,16 @@ import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
 import OpenAI from "openai";
 import React, { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
+import Animated from "react-native-reanimated";
+import { Circle, Svg } from "react-native-svg";
 import { PERSONA } from "./constants";
 import { useVoiceRecognition } from "./hooks/useVoiceRecognition";
+import CustomButton from "./src/components/CustomButton";
 import { processUserSpeechText } from "./src/services/speechService";
 import { styles } from "./src/styles/appStyles";
 import { supabaseResponse } from "./types";
 import { playAudioFromPath, writeAudioToFile } from "./utils/audioUtils";
-import { Svg, Circle } from "react-native-svg";
-import Animated, {
-  useSharedValue,
-  useAnimatedProps,
-  withTiming,
-} from "react-native-reanimated";
 
 export type ConversationPhase =
   | "standby"
@@ -151,50 +148,42 @@ export default function App() {
 
       {phase === "standby" && (
         <View>
-          <Pressable style={styles.button} onPress={startSpeaking}>
-            <Text style={{ marginTop: 8 }}>
-              <IconMicrophone color="black" />
-            </Text>
-          </Pressable>
+          <CustomButton onPress={startSpeaking}>
+            <IconMicrophone color="#F8F8FA" />
+          </CustomButton>
 
           {messages.length > 1 && (
-            <Pressable
-              style={[
-                styles.button,
-                { backgroundColor: "white", position: "absolute", left: 104 },
-              ]}
+            <CustomButton
               onPress={resetConversation}
+              buttonStyle={{
+                backgroundColor: "#F8F8FA",
+                position: "absolute",
+                top: -74,
+                left: 104,
+              }}
             >
-              <Text style={{ marginTop: 8 }}>
-                <IconRefresh color="black" />
-              </Text>
-            </Pressable>
+              <IconRefresh color="#6F7291" />
+            </CustomButton>
           )}
         </View>
       )}
 
       {phase === "recognizing" && (
-        <Pressable style={styles.button} onPress={stopSpeaking}>
-          <Text style={{ marginTop: 8 }}>
-            <IconPlayerStopFilled color="black" fill="black" />
-          </Text>
-        </Pressable>
+        <CustomButton onPress={stopSpeaking}>
+          <IconPlayerStopFilled color="#F8F8FA" fill="#F8F8FA" />
+        </CustomButton>
       )}
 
       {phase === "processing" && (
-        <Pressable style={styles.button} onPress={() => {}}>
-          <Text style={{ marginTop: 8 }}>
-            <IconLoader color="black" />
-          </Text>
-        </Pressable>
+        <CustomButton onPress={() => {}}>
+          <IconLoader color="#F8F8FA" />
+        </CustomButton>
       )}
 
       {phase === "speaking" && (
-        <Pressable style={styles.button} onPress={() => {}}>
-          <Text style={{ marginTop: 8 }}>
-            <IconPlayerStopFilled color="black" fill="black" />
-          </Text>
-        </Pressable>
+        <CustomButton onPress={() => {}}>
+          <IconPlayerStopFilled color="#F8F8FA" fill="#F8F8FA" />
+        </CustomButton>
       )}
     </View>
   );
