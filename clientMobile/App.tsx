@@ -9,7 +9,14 @@ import * as FileSystem from "expo-file-system";
 import OpenAI from "openai";
 import React, { useState } from "react";
 import { Text, View } from "react-native";
-import Animated from "react-native-reanimated";
+import Animated, {
+  useAnimatedProps,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 import { Circle, Svg } from "react-native-svg";
 import { PERSONA } from "./constants";
 import { useVoiceRecognition } from "./hooks/useVoiceRecognition";
@@ -42,6 +49,25 @@ export default function App() {
   );
   const [phase, setPhase] = useState<ConversationPhase>("standby");
   const [phaseText, setPhaseText] = useState("Press button and start speaking");
+  const innerCircleRadius = useSharedValue<number>(110);
+  const outerCircleRadius = useSharedValue<number>(120);
+
+  const animatedPropsInner = useAnimatedProps(() => ({
+    r: withTiming(innerCircleRadius.value, {
+      duration: 200,
+    }),
+  }));
+
+  const animatedPropsOuter = useAnimatedProps(() => ({
+    r: withDelay(
+      200,
+      withRepeat(
+        withTiming(outerCircleRadius.value, { duration: 1500 }),
+        0,
+        true
+      )
+    ),
+  }));
 
   const {
     recognizerState,
@@ -62,6 +88,8 @@ export default function App() {
       playsInSilentModeIOS: true,
     });
 
+    innerCircleRadius.value = 0;
+    outerCircleRadius.value += 10;
     setPhase("recognizing");
     setPhaseText("Press button when finished speaking");
     startRecognizing();
@@ -106,31 +134,31 @@ export default function App() {
       <View style={{ position: "relative" }}>
         <Svg
           style={{
-            height: 250,
-            width: 250,
+            height: 260,
+            width: 260,
             position: "relative",
           }}
         >
           <AnimatedCircle
             cx="50%"
             cy="50%"
-            r={120}
-            // animatedProps={animatedProps}
+            fill="#6F7291"
+            animatedProps={animatedPropsOuter}
           />
         </Svg>
+        {/* INNER CIRCLE */}
         <Svg
           style={{
-            height: 250,
-            width: 250,
+            height: 260,
+            width: 260,
             position: "absolute",
           }}
         >
           <AnimatedCircle
             cx="50%"
             cy="50%"
-            r={110}
-            fill="white"
-            // animatedProps={animatedProps}
+            fill="#F8F8FA"
+            animatedProps={animatedPropsInner}
           />
         </Svg>
       </View>
