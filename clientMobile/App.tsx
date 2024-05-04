@@ -7,9 +7,10 @@ import {
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
 import OpenAI from "openai";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 import Animated, {
+  cancelAnimation,
   useAnimatedProps,
   useSharedValue,
   withDelay,
@@ -53,21 +54,47 @@ export default function App() {
   const outerCircleRadius = useSharedValue<number>(120);
 
   const animatedPropsInner = useAnimatedProps(() => ({
-    r: withTiming(innerCircleRadius.value, {
-      duration: 200,
-    }),
+    r: innerCircleRadius.value,
   }));
 
   const animatedPropsOuter = useAnimatedProps(() => ({
-    r: withDelay(
-      200,
-      withRepeat(
-        withTiming(outerCircleRadius.value, { duration: 1500 }),
-        0,
-        true
-      )
-    ),
+    r: outerCircleRadius.value,
   }));
+
+  // const animatedPropsInner = useAnimatedProps(() => ({
+  //   r: withTiming(innerCircleRadius.value, {
+  //     duration: 200,
+  //   }),
+  // }));
+
+  // const animatedPropsOuter = useAnimatedProps(() => ({
+  //   r: withDelay(
+  //     200,
+  //     withRepeat(
+  //       withTiming(outerCircleRadius.value, { duration: 1500 }),
+  //       0,
+  //       true
+  //     )
+  //   ),
+  // }));
+
+  useEffect(() => {
+    if (phase === "standby") {
+    } else if (phase === "recognizing") {
+      innerCircleRadius.value = withTiming(0, {
+        duration: 200,
+      });
+
+      outerCircleRadius.value = withDelay(
+        200,
+        withRepeat(withTiming(130, { duration: 1500 }), 0, true)
+      );
+    } else if (phase === "processing") {
+      cancelAnimation(outerCircleRadius);
+      outerCircleRadius.value = withTiming(120);
+    } else if (phase === "speaking") {
+    }
+  }, [phase]);
 
   const {
     recognizerState,
@@ -88,8 +115,8 @@ export default function App() {
       playsInSilentModeIOS: true,
     });
 
-    innerCircleRadius.value = 0;
-    outerCircleRadius.value += 10;
+    // innerCircleRadius.value = 0;
+    // outerCircleRadius.value += 10;
     setPhase("recognizing");
     setPhaseText("Press button when finished speaking");
     startRecognizing();
@@ -143,6 +170,7 @@ export default function App() {
             cx="50%"
             cy="50%"
             fill="#6F7291"
+            r={outerCircleRadius}
             animatedProps={animatedPropsOuter}
           />
         </Svg>
@@ -158,7 +186,8 @@ export default function App() {
             cx="50%"
             cy="50%"
             fill="#F8F8FA"
-            animatedProps={animatedPropsInner}
+            r={innerCircleRadius}
+            // animatedProps={animatedPropsInner}
           />
         </Svg>
       </View>
