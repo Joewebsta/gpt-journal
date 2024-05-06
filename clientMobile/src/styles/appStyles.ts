@@ -11,7 +11,6 @@ export const styles = StyleSheet.create({
   },
   button: {
     alignItems: "center",
-    backgroundColor: "#6F7291",
     borderRadius: 1000,
     height: 74,
     width: 74,

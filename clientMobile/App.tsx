@@ -20,6 +20,7 @@ import { Circle, Svg } from "react-native-svg";
 import { PERSONA } from "./constants";
 import { useVoiceRecognition } from "./hooks/useVoiceRecognition";
 import CustomButton from "./src/components/CustomButton";
+import SpinningIconLoader from "./src/components/SpinningIconLoader";
 import { processUserSpeechText } from "./src/services/speechService";
 import { styles } from "./src/styles/appStyles";
 import { supabaseResponse } from "./types";
@@ -185,7 +186,12 @@ export default function App() {
 
       {phase === "standby" && (
         <View>
-          <CustomButton onPress={startSpeaking}>
+          <CustomButton
+            onPress={startSpeaking}
+            buttonStyle={{
+              backgroundColor: outerCircleFill.value,
+            }}
+          >
             <IconMicrophone color="#F8F8FA" />
           </CustomButton>
 
@@ -206,19 +212,34 @@ export default function App() {
       )}
 
       {phase === "recognizing" && (
-        <CustomButton onPress={stopSpeaking}>
+        <CustomButton
+          onPress={stopSpeaking}
+          buttonStyle={{
+            backgroundColor: outerCircleFill.value,
+          }}
+        >
           <IconPlayerStopFilled color="#F8F8FA" fill="#F8F8FA" />
         </CustomButton>
       )}
 
       {phase === "processing" && (
-        <CustomButton onPress={() => {}}>
-          <IconLoader color="#F8F8FA" />
+        <CustomButton
+          onPress={() => {}}
+          buttonStyle={{
+            backgroundColor: outerCircleFill.value,
+          }}
+        >
+          <SpinningIconLoader />
         </CustomButton>
       )}
 
       {phase === "speaking" && (
-        <CustomButton onPress={() => {}}>
+        <CustomButton
+          onPress={() => {}}
+          buttonStyle={{
+            backgroundColor: outerCircleFill.value,
+          }}
+        >
           <IconPlayerStopFilled color="#F8F8FA" fill="#F8F8FA" />
         </CustomButton>
       )}
