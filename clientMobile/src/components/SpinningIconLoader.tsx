@@ -21,7 +21,7 @@ export default function SpinningIconLoader() {
 
   return (
     <Animated.View style={{ transform: [{ rotate: spin }] }}>
-      <IconLoader color="#F8F8FA" />
+      <IconLoader color="#F8F8FA" size={30} />
     </Animated.View>
   );
 }

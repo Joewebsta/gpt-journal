@@ -192,7 +192,7 @@ export default function App() {
               backgroundColor: outerCircleFill.value,
             }}
           >
-            <IconMicrophone color="#F8F8FA" />
+            <IconMicrophone color="#F8F8FA" size={30} />
           </CustomButton>
 
           {messages.length > 1 && (
@@ -205,7 +205,7 @@ export default function App() {
                 left: 104,
               }}
             >
-              <IconRefresh color="#6F7291" />
+              <IconRefresh color="#6F7291" size={30} />
             </CustomButton>
           )}
         </View>
@@ -218,7 +218,7 @@ export default function App() {
             backgroundColor: outerCircleFill.value,
           }}
         >
-          <IconPlayerStopFilled color="#F8F8FA" fill="#F8F8FA" />
+          <IconPlayerStopFilled color="#F8F8FA" fill="#F8F8FA" size={30} />
         </CustomButton>
       )}
 
@@ -240,7 +240,7 @@ export default function App() {
             backgroundColor: outerCircleFill.value,
           }}
         >
-          <IconPlayerStopFilled color="#F8F8FA" fill="#F8F8FA" />
+          <IconPlayerStopFilled color="#F8F8FA" fill="#F8F8FA" size={30} />
         </CustomButton>
       )}
     </View>

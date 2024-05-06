@@ -10,12 +10,12 @@ export const styles = StyleSheet.create({
     backgroundColor: "#F8F8FA",
   },
   button: {
-    alignItems: "center",
     borderRadius: 1000,
     height: 74,
+    paddingTop: 9,
     width: 74,
     display: "flex",
+    alignItems: "center",
     justifyContent: "center",
-    paddingTop: 8,
   },
 });
