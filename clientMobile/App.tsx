@@ -11,11 +11,13 @@ import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 import Animated, {
   cancelAnimation,
+  interpolateColor,
   useAnimatedProps,
+  useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
   withDelay,
   withRepeat,
-  withSpring,
   withTiming,
 } from "react-native-reanimated";
 import { Circle, Svg } from "react-native-svg";
@@ -52,47 +54,35 @@ export default function App() {
   const [phaseText, setPhaseText] = useState("Press button and start speaking");
   const innerCircleRadius = useSharedValue<number>(110);
   const outerCircleRadius = useSharedValue<number>(120);
+  const outerCircleFill = useDerivedValue(() => {
+    if (phase === "processing") {
+      // Lavender
+      return "#A28EA8";
+    }
 
-  const animatedPropsInner = useAnimatedProps(() => ({
-    r: innerCircleRadius.value,
-  }));
-
-  const animatedPropsOuter = useAnimatedProps(() => ({
-    r: outerCircleRadius.value,
-  }));
-
-  // const animatedPropsInner = useAnimatedProps(() => ({
-  //   r: withTiming(innerCircleRadius.value, {
-  //     duration: 200,
-  //   }),
-  // }));
-
-  // const animatedPropsOuter = useAnimatedProps(() => ({
-  //   r: withDelay(
-  //     200,
-  //     withRepeat(
-  //       withTiming(outerCircleRadius.value, { duration: 1500 }),
-  //       0,
-  //       true
-  //     )
-  //   ),
-  // }));
+    // Slate
+    return "#6F7291";
+  }, [phase]);
 
   useEffect(() => {
-    if (phase === "standby") {
-    } else if (phase === "recognizing") {
+    if (phase === "recognizing") {
+      // Inner circle decreases until hidden
       innerCircleRadius.value = withTiming(0, {
         duration: 200,
       });
-
+      // Outer circle pulses continuously
       outerCircleRadius.value = withDelay(
         200,
         withRepeat(withTiming(130, { duration: 1500 }), 0, true)
       );
     } else if (phase === "processing") {
-      cancelAnimation(outerCircleRadius);
-      outerCircleRadius.value = withTiming(120);
     } else if (phase === "speaking") {
+    } else if (phase === "standby" && messages.length > 1) {
+      cancelAnimation(outerCircleRadius);
+      // Inner circle resets to original size (110)
+      innerCircleRadius.value = withTiming(110);
+      // Outer circle resets to original size (120)
+      outerCircleRadius.value = withTiming(120);
     }
   }, [phase]);
 
@@ -115,8 +105,6 @@ export default function App() {
       playsInSilentModeIOS: true,
     });
 
-    // innerCircleRadius.value = 0;
-    // outerCircleRadius.value += 10;
     setPhase("recognizing");
     setPhaseText("Press button when finished speaking");
     startRecognizing();
@@ -127,7 +115,7 @@ export default function App() {
     setPhaseText("Thinking...");
     stopRecognizing();
 
-    const speechText = recognizerState.results[0];
+    const speechText = recognizerState.results[0] || "";
     const path = `${FileSystem.documentDirectory}${Date.now()}.mp3`;
 
     try {
@@ -159,6 +147,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <View style={{ position: "relative" }}>
+        {/* OUTER CIRCLE */}
         <Svg
           style={{
             height: 260,
@@ -169,9 +158,8 @@ export default function App() {
           <AnimatedCircle
             cx="50%"
             cy="50%"
-            fill="#6F7291"
+            fill={outerCircleFill.value}
             r={outerCircleRadius}
-            animatedProps={animatedPropsOuter}
           />
         </Svg>
         {/* INNER CIRCLE */}
@@ -187,7 +175,6 @@ export default function App() {
             cy="50%"
             fill="#F8F8FA"
             r={innerCircleRadius}
-            // animatedProps={animatedPropsInner}
           />
         </Svg>
       </View>
