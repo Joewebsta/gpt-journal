@@ -11,10 +11,6 @@ import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 import Animated, {
   cancelAnimation,
-  interpolateColor,
-  useAnimatedProps,
-  useAnimatedStyle,
-  useDerivedValue,
   useSharedValue,
   withDelay,
   withRepeat,
@@ -54,15 +50,7 @@ export default function App() {
   const [phaseText, setPhaseText] = useState("Press button and start speaking");
   const innerCircleRadius = useSharedValue<number>(110);
   const outerCircleRadius = useSharedValue<number>(120);
-  const outerCircleFill = useDerivedValue(() => {
-    if (phase === "processing") {
-      // Lavender
-      return "#A28EA8";
-    }
-
-    // Slate
-    return "#6F7291";
-  }, [phase]);
+  const outerCircleFill = useSharedValue<string>("#6F7291");
 
   useEffect(() => {
     if (phase === "recognizing") {
@@ -76,8 +64,13 @@ export default function App() {
         withRepeat(withTiming(130, { duration: 1500 }), 0, true)
       );
     } else if (phase === "processing") {
+      // Outer circle changes to lavender
+      outerCircleFill.value = "#A28EA8";
     } else if (phase === "speaking") {
+      // Outer circle changes to slate
+      outerCircleFill.value = "#6F7291";
     } else if (phase === "standby" && messages.length > 1) {
+      // Outer circle animation canceled
       cancelAnimation(outerCircleRadius);
       // Inner circle resets to original size (110)
       innerCircleRadius.value = withTiming(110);
