@@ -1,6 +1,6 @@
 import * as FileSystem from "expo-file-system";
 import { Audio } from "expo-av";
-import { ConversationPhase } from "../App";
+import { ConversationPhase } from "../types";
 
 export const writeAudioToFile = async (path: string, audioData: string) => {
   await FileSystem.writeAsStringAsync(path, audioData, {
@@ -18,12 +18,12 @@ export async function playAudioFromPath(
     const soundObject = new Audio.Sound();
     soundObject.setOnPlaybackStatusUpdate((status) => {
       if (status.isPlaying) {
-        setPhase("speaking");
+        setPhase(ConversationPhase.Speaking);
         setPhaseText("Press button to interrupt");
       }
 
       if (status.didJustFinish) {
-        setPhase("standby");
+        setPhase(ConversationPhase.Standby);
         setPhaseText("Press button and start speaking");
       }
     });

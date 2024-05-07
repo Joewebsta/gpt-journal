@@ -1,5 +1,4 @@
 import {
-  IconLoader,
   IconMicrophone,
   IconPlayerStopFilled,
   IconRefresh,
@@ -22,15 +21,9 @@ import { useVoiceRecognition } from "./hooks/useVoiceRecognition";
 import CustomButton from "./src/components/CustomButton";
 import SpinningIconLoader from "./src/components/SpinningIconLoader";
 import { processUserSpeechText } from "./src/services/speechService";
-import { styles } from "./src/styles/appStyles";
-import { supabaseResponse } from "./types";
+import { styles, COLORS } from "./src/styles/appStyles";
+import { ConversationPhase, supabaseResponse } from "./types";
 import { playAudioFromPath, writeAudioToFile } from "./utils/audioUtils";
-
-export type ConversationPhase =
-  | "standby"
-  | "recognizing"
-  | "processing"
-  | "speaking";
 
 Audio.setAudioModeAsync({
   allowsRecordingIOS: false,
@@ -47,38 +40,14 @@ export default function App() {
   const [messages, setMessages] = useState<OpenAI.ChatCompletionMessageParam[]>(
     [{ role: "system", content: PERSONA }]
   );
-  const [phase, setPhase] = useState<ConversationPhase>("standby");
-  const [phaseText, setPhaseText] = useState("Press button and start speaking");
-  const innerCircleRadius = useSharedValue<number>(110);
-  const outerCircleRadius = useSharedValue<number>(120);
-  const outerCircleFill = useSharedValue<string>("#6F7291");
+  const [phase, setPhase] = useState<ConversationPhase>(
+    ConversationPhase.Standby
+  );
 
-  useEffect(() => {
-    if (phase === "recognizing") {
-      // Inner circle decreases until hidden
-      innerCircleRadius.value = withTiming(0, {
-        duration: 200,
-      });
-      // Outer circle pulses continuously
-      outerCircleRadius.value = withDelay(
-        200,
-        withRepeat(withTiming(130, { duration: 1500 }), 0, true)
-      );
-    } else if (phase === "processing") {
-      // Outer circle changes to lavender
-      outerCircleFill.value = "#A28EA8";
-    } else if (phase === "speaking") {
-      // Outer circle changes to slate
-      outerCircleFill.value = "#6F7291";
-    } else if (phase === "standby" && messages.length > 1) {
-      // Outer circle animation canceled
-      cancelAnimation(outerCircleRadius);
-      // Inner circle resets to original size (110)
-      innerCircleRadius.value = withTiming(110);
-      // Outer circle resets to original size (120)
-      outerCircleRadius.value = withTiming(120);
-    }
-  }, [phase]);
+  const [phaseText, setPhaseText] = useState("Press button and start speaking");
+  const standbyCircleRadius = useSharedValue<number>(110);
+  const activeCircleRadius = useSharedValue<number>(120);
+  const activeCircleFill = useSharedValue<string>(COLORS.SLATE);
 
   const {
     recognizerState,
@@ -87,6 +56,31 @@ export default function App() {
     destroyRecognizer,
     resetRecognizerState,
   } = useVoiceRecognition();
+
+  useEffect(() => {
+    if (phase === "recognizing") {
+      // Standby circle decreases until hidden
+      standbyCircleRadius.value = withTiming(0, { duration: 200 });
+      // Outer circle grows/shrinks continuously
+      activeCircleRadius.value = withDelay(
+        200,
+        withRepeat(withTiming(130, { duration: 1500 }), 0, true)
+      );
+    } else if (phase === "processing") {
+      // Outer circle changes to lavender
+      activeCircleFill.value = COLORS.LAVENDER;
+    } else if (phase === "speaking") {
+      // Outer circle changes to slate
+      activeCircleFill.value = COLORS.SLATE;
+    } else if (phase === "standby" && messages.length > 1) {
+      // Outer circle animation canceled
+      cancelAnimation(activeCircleRadius);
+      // Standby circle resets to original size (110)
+      standbyCircleRadius.value = withTiming(110);
+      // Outer circle resets to original size (120)
+      activeCircleRadius.value = withTiming(120);
+    }
+  }, [phase]);
 
   const startSpeaking = async () => {
     if (permissionResponse && permissionResponse.status !== "granted") {
@@ -99,13 +93,13 @@ export default function App() {
       playsInSilentModeIOS: true,
     });
 
-    setPhase("recognizing");
+    setPhase(ConversationPhase.Recognizing);
     setPhaseText("Press button when finished speaking");
     startRecognizing();
   };
 
   const stopSpeaking = async () => {
-    setPhase("processing");
+    setPhase(ConversationPhase.Processing);
     setPhaseText("Thinking...");
     stopRecognizing();
 
@@ -126,7 +120,7 @@ export default function App() {
     } catch (error) {
       if (error instanceof Error) {
         console.error("Error invoking Supabase function: ", error.message);
-        console.error((error as Error).stack);
+        console.error(error);
       }
     }
   };
@@ -134,14 +128,13 @@ export default function App() {
   const resetConversation = async () => {
     resetRecognizerState();
     destroyRecognizer();
-
     setMessages([{ role: "system", content: PERSONA }]);
   };
 
   return (
     <View style={styles.container}>
       <View style={{ position: "relative" }}>
-        {/* OUTER CIRCLE */}
+        {/* ACTIVE CIRCLE */}
         <Svg
           style={{
             height: 260,
@@ -152,11 +145,11 @@ export default function App() {
           <AnimatedCircle
             cx="50%"
             cy="50%"
-            fill={outerCircleFill.value}
-            r={outerCircleRadius}
+            fill={activeCircleFill.value}
+            r={activeCircleRadius}
           />
         </Svg>
-        {/* INNER CIRCLE */}
+        {/* STANDBY CIRCLE */}
         <Svg
           style={{
             height: 260,
@@ -167,18 +160,11 @@ export default function App() {
           <AnimatedCircle
             cx="50%"
             cy="50%"
-            fill="#F8F8FA"
-            r={innerCircleRadius}
+            fill={COLORS.SILVER}
+            r={standbyCircleRadius}
           />
         </Svg>
       </View>
-
-      {/* <Text>Results</Text>
-      <Text>{`Error: ${recognizerState.error}`}</Text>
-      <Text>{phase}</Text>
-      {recognizerState.results.map((result, index) => {
-        return <Text key={`result-${index}`}>{result}</Text>;
-      })} */}
 
       <View>
         <Text>{phaseText}</Text>
@@ -189,23 +175,23 @@ export default function App() {
           <CustomButton
             onPress={startSpeaking}
             buttonStyle={{
-              backgroundColor: outerCircleFill.value,
+              backgroundColor: activeCircleFill.value,
             }}
           >
-            <IconMicrophone color="#F8F8FA" size={30} />
+            <IconMicrophone color={COLORS.SILVER} size={30} />
           </CustomButton>
 
           {messages.length > 1 && (
             <CustomButton
               onPress={resetConversation}
               buttonStyle={{
-                backgroundColor: "#F8F8FA",
+                backgroundColor: COLORS.SILVER,
                 position: "absolute",
                 top: -74,
                 left: 104,
               }}
             >
-              <IconRefresh color="#6F7291" size={30} />
+              <IconRefresh color={COLORS.SLATE} size={30} />
             </CustomButton>
           )}
         </View>
@@ -214,20 +200,20 @@ export default function App() {
       {phase === "recognizing" && (
         <CustomButton
           onPress={stopSpeaking}
-          buttonStyle={{
-            backgroundColor: outerCircleFill.value,
-          }}
+          buttonStyle={{ backgroundColor: activeCircleFill.value }}
         >
-          <IconPlayerStopFilled color="#F8F8FA" fill="#F8F8FA" size={30} />
+          <IconPlayerStopFilled
+            color={COLORS.SILVER}
+            fill={COLORS.SILVER}
+            size={30}
+          />
         </CustomButton>
       )}
 
       {phase === "processing" && (
         <CustomButton
           onPress={() => {}}
-          buttonStyle={{
-            backgroundColor: outerCircleFill.value,
-          }}
+          buttonStyle={{ backgroundColor: activeCircleFill.value }}
         >
           <SpinningIconLoader />
         </CustomButton>
@@ -236,11 +222,13 @@ export default function App() {
       {phase === "speaking" && (
         <CustomButton
           onPress={() => {}}
-          buttonStyle={{
-            backgroundColor: outerCircleFill.value,
-          }}
+          buttonStyle={{ backgroundColor: activeCircleFill.value }}
         >
-          <IconPlayerStopFilled color="#F8F8FA" fill="#F8F8FA" size={30} />
+          <IconPlayerStopFilled
+            color={COLORS.SILVER}
+            fill={COLORS.SILVER}
+            size={30}
+          />
         </CustomButton>
       )}
     </View>

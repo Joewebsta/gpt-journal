@@ -5,3 +5,10 @@ export type supabaseResponse = {
   assistantMessage: OpenAI.ChatCompletionMessage;
   encodedMp3Data: string;
 };
+
+export enum ConversationPhase {
+  Standby = "standby",
+  Recognizing = "recognizing",
+  Processing = "processing",
+  Speaking = "speaking",
+}
