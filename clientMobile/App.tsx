@@ -1,27 +1,24 @@
-import {
-  IconMicrophone,
-  IconPlayerStopFilled,
-  IconRefresh,
-} from "@tabler/icons-react-native";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
 import OpenAI from "openai";
 import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";
-import Animated, {
+import {
   cancelAnimation,
   useSharedValue,
   withDelay,
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
-import { Circle, Svg } from "react-native-svg";
 import { PERSONA } from "./constants";
 import { useVoiceRecognition } from "./hooks/useVoiceRecognition";
-import CustomButton from "./src/components/CustomButton";
-import SpinningIconLoader from "./src/components/SpinningIconLoader";
+import AnimatedCircles from "./src/components/AnimatedCircles";
+import ProcessingPhase from "./src/components/phases/ProcessingPhase";
+import RecognizingPhase from "./src/components/phases/RecognizingPhase";
+import SpeakingPhase from "./src/components/phases/SpeakingPhase";
+import StandbyPhase from "./src/components/phases/StandbyPhase";
 import { processUserSpeechText } from "./src/services/speechService";
-import { styles, COLORS } from "./src/styles/appStyles";
+import { COLORS, styles } from "./src/styles/appStyles";
 import { ConversationPhase, supabaseResponse } from "./types";
 import { playAudioFromPath, writeAudioToFile } from "./utils/audioUtils";
 
@@ -32,8 +29,6 @@ Audio.setAudioModeAsync({
   shouldDuckAndroid: true,
   playThroughEarpieceAndroid: false,
 });
-
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 export default function App() {
   const [permissionResponse, requestPermission] = Audio.usePermissions();
@@ -133,103 +128,38 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <View style={{ position: "relative" }}>
-        {/* ACTIVE CIRCLE */}
-        <Svg
-          style={{
-            height: 260,
-            width: 260,
-            position: "relative",
-          }}
-        >
-          <AnimatedCircle
-            cx="50%"
-            cy="50%"
-            fill={activeCircleFill.value}
-            r={activeCircleRadius}
-          />
-        </Svg>
-        {/* STANDBY CIRCLE */}
-        <Svg
-          style={{
-            height: 260,
-            width: 260,
-            position: "absolute",
-          }}
-        >
-          <AnimatedCircle
-            cx="50%"
-            cy="50%"
-            fill={COLORS.SILVER}
-            r={standbyCircleRadius}
-          />
-        </Svg>
-      </View>
+      <AnimatedCircles
+        activeCircleFill={activeCircleFill}
+        activeCircleRadius={activeCircleRadius}
+        standbyCircleRadius={standbyCircleRadius}
+      />
 
       <View>
         <Text>{phaseText}</Text>
       </View>
 
       {phase === "standby" && (
-        <View>
-          <CustomButton
-            onPress={startSpeaking}
-            buttonStyle={{
-              backgroundColor: activeCircleFill.value,
-            }}
-          >
-            <IconMicrophone color={COLORS.SILVER} size={30} />
-          </CustomButton>
-
-          {messages.length > 1 && (
-            <CustomButton
-              onPress={resetConversation}
-              buttonStyle={{
-                backgroundColor: COLORS.SILVER,
-                position: "absolute",
-                top: -74,
-                left: 104,
-              }}
-            >
-              <IconRefresh color={COLORS.SLATE} size={30} />
-            </CustomButton>
-          )}
-        </View>
+        <StandbyPhase
+          startSpeaking={startSpeaking}
+          resetConversation={resetConversation}
+          messages={messages}
+          activeCircleFill={activeCircleFill}
+        />
       )}
 
       {phase === "recognizing" && (
-        <CustomButton
-          onPress={stopSpeaking}
-          buttonStyle={{ backgroundColor: activeCircleFill.value }}
-        >
-          <IconPlayerStopFilled
-            color={COLORS.SILVER}
-            fill={COLORS.SILVER}
-            size={30}
-          />
-        </CustomButton>
+        <RecognizingPhase
+          stopSpeaking={stopSpeaking}
+          activeCircleFill={activeCircleFill}
+        />
       )}
 
       {phase === "processing" && (
-        <CustomButton
-          onPress={() => {}}
-          buttonStyle={{ backgroundColor: activeCircleFill.value }}
-        >
-          <SpinningIconLoader />
-        </CustomButton>
+        <ProcessingPhase activeCircleFill={activeCircleFill} />
       )}
 
       {phase === "speaking" && (
-        <CustomButton
-          onPress={() => {}}
-          buttonStyle={{ backgroundColor: activeCircleFill.value }}
-        >
-          <IconPlayerStopFilled
-            color={COLORS.SILVER}
-            fill={COLORS.SILVER}
-            size={30}
-          />
-        </CustomButton>
+        <SpeakingPhase activeCircleFill={activeCircleFill} />
       )}
     </View>
   );
