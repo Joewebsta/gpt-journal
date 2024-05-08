@@ -6,21 +6,26 @@ import { Text, View } from "react-native";
 import {
   cancelAnimation,
   useSharedValue,
-  withDelay,
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
-import { PERSONA } from "./constants";
 import { useVoiceRecognition } from "./hooks/useVoiceRecognition";
 import AnimatedCircles from "./src/components/AnimatedCircles";
 import ProcessingPhase from "./src/components/phases/ProcessingPhase";
 import RecognizingPhase from "./src/components/phases/RecognizingPhase";
 import SpeakingPhase from "./src/components/phases/SpeakingPhase";
 import StandbyPhase from "./src/components/phases/StandbyPhase";
+import {
+  PERSONA,
+  ACTIVE_CIRCLE_DEFAULT_RADIUS,
+  STANDBY_CIRCLE_DEFAULT_RADIUS,
+  ACTIVE_CIRCLE_PULSE_DURATION,
+  STANDBY_CIRCLE_SHRINK_DURATION,
+} from "./src/constants";
 import { processUserSpeechText } from "./src/services/speechService";
 import { COLORS, styles } from "./src/styles/appStyles";
-import { ConversationPhase, supabaseResponse } from "./types";
-import { playAudioFromPath, writeAudioToFile } from "./utils/audioUtils";
+import { ConversationPhase, supabaseResponse } from "./src/types";
+import { playAudioFromPath, writeAudioToFile } from "./src/utils/audioUtils";
 
 Audio.setAudioModeAsync({
   allowsRecordingIOS: false,
@@ -40,8 +45,12 @@ export default function App() {
   );
 
   const [phaseText, setPhaseText] = useState("Press button and start speaking");
-  const standbyCircleRadius = useSharedValue<number>(110);
-  const activeCircleRadius = useSharedValue<number>(120);
+  const standbyCircleRadius = useSharedValue<number>(
+    STANDBY_CIRCLE_DEFAULT_RADIUS
+  );
+  const activeCircleRadius = useSharedValue<number>(
+    ACTIVE_CIRCLE_DEFAULT_RADIUS
+  );
   const activeCircleFill = useSharedValue<string>(COLORS.SLATE);
 
   const {
@@ -55,11 +64,17 @@ export default function App() {
   useEffect(() => {
     if (phase === "recognizing") {
       // Standby circle decreases until hidden
-      standbyCircleRadius.value = withTiming(0, { duration: 200 });
+      standbyCircleRadius.value = withTiming(0, {
+        duration: STANDBY_CIRCLE_SHRINK_DURATION,
+      });
+
       // Outer circle grows/shrinks continuously
-      activeCircleRadius.value = withDelay(
-        200,
-        withRepeat(withTiming(130, { duration: 1500 }), 0, true)
+      activeCircleRadius.value = withRepeat(
+        withTiming(ACTIVE_CIRCLE_DEFAULT_RADIUS + 10, {
+          duration: ACTIVE_CIRCLE_PULSE_DURATION,
+        }),
+        0,
+        true
       );
     } else if (phase === "processing") {
       // Outer circle changes to lavender
@@ -71,9 +86,9 @@ export default function App() {
       // Outer circle animation canceled
       cancelAnimation(activeCircleRadius);
       // Standby circle resets to original size (110)
-      standbyCircleRadius.value = withTiming(110);
+      standbyCircleRadius.value = withTiming(STANDBY_CIRCLE_DEFAULT_RADIUS);
       // Outer circle resets to original size (120)
-      activeCircleRadius.value = withTiming(120);
+      activeCircleRadius.value = withTiming(ACTIVE_CIRCLE_DEFAULT_RADIUS);
     }
   }, [phase]);
 
