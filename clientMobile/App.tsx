@@ -25,14 +25,17 @@ import {
 import { processUserSpeechText } from "./src/services/speechService";
 import { COLORS, styles } from "./src/styles/appStyles";
 import { ConversationPhase, supabaseResponse } from "./src/types";
-import { playAudioFromPath, writeAudioToFile } from "./src/utils/audioUtils";
+import {
+  checkPermission,
+  playAudioFromPath,
+  writeAudioToFile,
+} from "./src/utils/audioUtils";
+import { startRecognizingPhase } from "./src/utils/phaseUtils";
 
 Audio.setAudioModeAsync({
-  allowsRecordingIOS: false,
-  staysActiveInBackground: false,
+  allowsRecordingIOS: true,
   playsInSilentModeIOS: true,
-  shouldDuckAndroid: true,
-  playThroughEarpieceAndroid: false,
+  staysActiveInBackground: false,
 });
 
 export default function App() {
@@ -61,12 +64,10 @@ export default function App() {
 
   useEffect(() => {
     if (phase === "recognizing") {
-      // Standby circle decreases until hidden
       standbyCircleRadius.value = withTiming(0, {
         duration: STANDBY_CIRCLE_SHRINK_DURATION,
       });
 
-      // Outer circle grows/shrinks continuously
       activeCircleRadius.value = withRepeat(
         withTiming(ACTIVE_CIRCLE_RADIUS + 10, {
           duration: ACTIVE_CIRCLE_PULSE_DURATION,
@@ -75,38 +76,21 @@ export default function App() {
         true
       );
     } else if (phase === "processing") {
-      // Outer circle changes to lavender
       activeCircleFill.value = COLORS.LAVENDER;
     } else if (phase === "speaking") {
-      // Outer circle changes to slate
       activeCircleFill.value = COLORS.SLATE;
     } else if (phase === "standby" && messages.length > 1) {
-      // Outer circle animation canceled
       cancelAnimation(activeCircleRadius);
-
-      // Standby circle resets to original size (110)
       standbyCircleRadius.value = withTiming(STANDBY_CIRCLE_RADIUS);
-
-      // Outer circle resets to original size (120)
       activeCircleRadius.value = withTiming(ACTIVE_CIRCLE_RADIUS);
     }
   }, [phase]);
 
   const startSpeaking = async () => {
     try {
-      if (permissionResponse && permissionResponse.status !== "granted") {
-        console.log("Requesting permission...");
-        await requestPermission();
-      }
-
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
-
-      setPhase(ConversationPhase.Recognizing);
-      setPhaseText("Press button when finished speaking");
+      await checkPermission(permissionResponse, requestPermission);
       startRecognizing();
+      startRecognizingPhase(setPhase, setPhaseText);
     } catch (error) {
       console.error("Error in startSpeaking: ", error);
     }

@@ -33,3 +33,13 @@ export async function playAudioFromPath(
     console.log("An error occurred while playing the audio:", error);
   }
 }
+
+export const checkPermission = async (
+  permissionResponse: Audio.PermissionResponse | null,
+  requestPermission: () => Promise<Audio.PermissionResponse>,
+) => {
+  if (permissionResponse && permissionResponse.status !== "granted") {
+    console.log("Requesting permission...");
+    await requestPermission();
+  }
+};
