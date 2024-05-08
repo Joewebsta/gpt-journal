@@ -1,5 +1,4 @@
 import { Audio } from "expo-av";
-import * as FileSystem from "expo-file-system";
 import OpenAI from "openai";
 import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";
@@ -16,21 +15,18 @@ import RecognizingPhase from "./src/components/phases/RecognizingPhase";
 import SpeakingPhase from "./src/components/phases/SpeakingPhase";
 import StandbyPhase from "./src/components/phases/StandbyPhase";
 import {
-  PERSONA,
-  ACTIVE_CIRCLE_RADIUS,
-  STANDBY_CIRCLE_RADIUS,
   ACTIVE_CIRCLE_PULSE_DURATION,
+  ACTIVE_CIRCLE_RADIUS,
+  PERSONA,
+  STANDBY_CIRCLE_RADIUS,
   STANDBY_CIRCLE_SHRINK_DURATION,
 } from "./src/constants";
 import { processUserSpeechText } from "./src/services/speechService";
 import { COLORS, styles } from "./src/styles/appStyles";
 import { ConversationPhase, supabaseResponse } from "./src/types";
-import {
-  checkPermission,
-  playAudioFromPath,
-  writeAudioToFile,
-} from "./src/utils/audioUtils";
-import { startRecognizingPhase } from "./src/utils/phaseUtils";
+import { checkPermission, storeAndPlayAudio } from "./src/utils/audioUtils";
+import { updateMessages } from "./src/utils/messageUtils";
+import { startPhase } from "./src/utils/phaseUtils";
 
 Audio.setAudioModeAsync({
   allowsRecordingIOS: true,
@@ -90,7 +86,12 @@ export default function App() {
     try {
       await checkPermission(permissionResponse, requestPermission);
       startRecognizing();
-      startRecognizingPhase(setPhase, setPhaseText);
+      startPhase(
+        ConversationPhase.Recognizing,
+        "Press button when finished speaking",
+        setPhase,
+        setPhaseText
+      );
     } catch (error) {
       console.error("Error in startSpeaking: ", error);
     }
@@ -98,23 +99,23 @@ export default function App() {
 
   const stopSpeaking = async () => {
     try {
-      setPhase(ConversationPhase.Processing);
-      setPhaseText("Thinking...");
       stopRecognizing();
+      startPhase(
+        ConversationPhase.Processing,
+        "Thinking...",
+        setPhase,
+        setPhaseText
+      );
 
       const speechText = recognizerState.results[0] || "";
-      const path = `${FileSystem.documentDirectory}${Date.now()}.mp3`;
-
       const {
         userMessage,
         assistantMessage,
         encodedMp3Data,
       }: supabaseResponse = await processUserSpeechText(speechText, messages);
 
-      setMessages((messages) => [...messages, userMessage, assistantMessage]);
-
-      await writeAudioToFile(path, encodedMp3Data);
-      await playAudioFromPath(path, setPhase, setPhaseText);
+      updateMessages(userMessage, assistantMessage, setMessages);
+      await storeAndPlayAudio(encodedMp3Data, setPhase, setPhaseText);
     } catch (error) {
       console.error("Error in stopSpeaking: ", error);
     }

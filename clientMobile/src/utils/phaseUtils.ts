@@ -1,9 +1,11 @@
 import { ConversationPhase } from "../types";
 
-export const startRecognizingPhase = (
+export const startPhase = (
+  phase: ConversationPhase,
+  phaseText: string,
   setPhase: React.Dispatch<React.SetStateAction<ConversationPhase>>,
   setPhaseText: React.Dispatch<React.SetStateAction<string>>,
 ) => {
-  setPhase(ConversationPhase.Recognizing);
-  setPhaseText("Press button when finished speaking");
+  setPhase(phase);
+  setPhaseText(phaseText);
 };

@@ -43,3 +43,17 @@ export const checkPermission = async (
     await requestPermission();
   }
 };
+
+export const storeAndPlayAudio = async (
+  encodedMp3Data: string,
+  setPhase: React.Dispatch<React.SetStateAction<ConversationPhase>>,
+  setPhaseText: React.Dispatch<React.SetStateAction<string>>,
+) => {
+  try {
+    const path = `${FileSystem.documentDirectory}${Date.now()}.mp3`;
+    await writeAudioToFile(path, encodedMp3Data);
+    await playAudioFromPath(path, setPhase, setPhaseText);
+  } catch (error) {
+    console.error("An error occurred while playing the audio:", error);
+  }
+};
