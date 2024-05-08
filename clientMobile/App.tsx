@@ -17,8 +17,8 @@ import SpeakingPhase from "./src/components/phases/SpeakingPhase";
 import StandbyPhase from "./src/components/phases/StandbyPhase";
 import {
   PERSONA,
-  ACTIVE_CIRCLE_DEFAULT_RADIUS,
-  STANDBY_CIRCLE_DEFAULT_RADIUS,
+  ACTIVE_CIRCLE_RADIUS,
+  STANDBY_CIRCLE_RADIUS,
   ACTIVE_CIRCLE_PULSE_DURATION,
   STANDBY_CIRCLE_SHRINK_DURATION,
 } from "./src/constants";
@@ -37,20 +37,18 @@ Audio.setAudioModeAsync({
 
 export default function App() {
   const [permissionResponse, requestPermission] = Audio.usePermissions();
+
   const [messages, setMessages] = useState<OpenAI.ChatCompletionMessageParam[]>(
     [{ role: "system", content: PERSONA }]
   );
+
   const [phase, setPhase] = useState<ConversationPhase>(
     ConversationPhase.Standby
   );
 
   const [phaseText, setPhaseText] = useState("Press button and start speaking");
-  const standbyCircleRadius = useSharedValue<number>(
-    STANDBY_CIRCLE_DEFAULT_RADIUS
-  );
-  const activeCircleRadius = useSharedValue<number>(
-    ACTIVE_CIRCLE_DEFAULT_RADIUS
-  );
+  const standbyCircleRadius = useSharedValue<number>(STANDBY_CIRCLE_RADIUS);
+  const activeCircleRadius = useSharedValue<number>(ACTIVE_CIRCLE_RADIUS);
   const activeCircleFill = useSharedValue<string>(COLORS.SLATE);
 
   const {
@@ -70,7 +68,7 @@ export default function App() {
 
       // Outer circle grows/shrinks continuously
       activeCircleRadius.value = withRepeat(
-        withTiming(ACTIVE_CIRCLE_DEFAULT_RADIUS + 10, {
+        withTiming(ACTIVE_CIRCLE_RADIUS + 10, {
           duration: ACTIVE_CIRCLE_PULSE_DURATION,
         }),
         0,
@@ -85,38 +83,44 @@ export default function App() {
     } else if (phase === "standby" && messages.length > 1) {
       // Outer circle animation canceled
       cancelAnimation(activeCircleRadius);
+
       // Standby circle resets to original size (110)
-      standbyCircleRadius.value = withTiming(STANDBY_CIRCLE_DEFAULT_RADIUS);
+      standbyCircleRadius.value = withTiming(STANDBY_CIRCLE_RADIUS);
+
       // Outer circle resets to original size (120)
-      activeCircleRadius.value = withTiming(ACTIVE_CIRCLE_DEFAULT_RADIUS);
+      activeCircleRadius.value = withTiming(ACTIVE_CIRCLE_RADIUS);
     }
   }, [phase]);
 
   const startSpeaking = async () => {
-    if (permissionResponse && permissionResponse.status !== "granted") {
-      console.log("Requesting permission...");
-      await requestPermission();
+    try {
+      if (permissionResponse && permissionResponse.status !== "granted") {
+        console.log("Requesting permission...");
+        await requestPermission();
+      }
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      setPhase(ConversationPhase.Recognizing);
+      setPhaseText("Press button when finished speaking");
+      startRecognizing();
+    } catch (error) {
+      console.error("Error in startSpeaking: ", error);
     }
-
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: true,
-      playsInSilentModeIOS: true,
-    });
-
-    setPhase(ConversationPhase.Recognizing);
-    setPhaseText("Press button when finished speaking");
-    startRecognizing();
   };
 
   const stopSpeaking = async () => {
-    setPhase(ConversationPhase.Processing);
-    setPhaseText("Thinking...");
-    stopRecognizing();
-
-    const speechText = recognizerState.results[0] || "";
-    const path = `${FileSystem.documentDirectory}${Date.now()}.mp3`;
-
     try {
+      setPhase(ConversationPhase.Processing);
+      setPhaseText("Thinking...");
+      stopRecognizing();
+
+      const speechText = recognizerState.results[0] || "";
+      const path = `${FileSystem.documentDirectory}${Date.now()}.mp3`;
+
       const {
         userMessage,
         assistantMessage,
@@ -128,17 +132,18 @@ export default function App() {
       await writeAudioToFile(path, encodedMp3Data);
       await playAudioFromPath(path, setPhase, setPhaseText);
     } catch (error) {
-      if (error instanceof Error) {
-        console.error("Error invoking Supabase function: ", error.message);
-        console.error(error);
-      }
+      console.error("Error in stopSpeaking: ", error);
     }
   };
 
   const resetConversation = async () => {
-    resetRecognizerState();
-    destroyRecognizer();
-    setMessages([{ role: "system", content: PERSONA }]);
+    try {
+      resetRecognizerState();
+      destroyRecognizer();
+      setMessages([{ role: "system", content: PERSONA }]);
+    } catch (error) {
+      console.error("Error in resetConversation: ", error);
+    }
   };
 
   return (
