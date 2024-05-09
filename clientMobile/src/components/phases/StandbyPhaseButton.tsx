@@ -3,7 +3,7 @@ import OpenAI from "openai";
 import { View } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import { COLORS } from "../../styles/appStyles";
-import CustomButton from "../PhaseButton";
+import CustomButton from "./PhaseButton";
 
 type StandbyPhaseButtonProps = {
   startSpeaking: () => Promise<void>;

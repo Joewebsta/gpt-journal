@@ -1,4 +1,4 @@
-import supabase from "../clients/supabaseClient";
+import supabase from "../../clients/supabaseClient";
 import OpenAI from "openai";
 
 export const processUserSpeechText = async (
@@ -11,8 +11,17 @@ export const processUserSpeechText = async (
         body: JSON.stringify({ speechText, messages }),
       });
 
+    if (responseError) {
+      throw new Error(
+        `Failed to process user speech text: ${responseError.message}`,
+      );
+    }
+
     return responseData;
   } catch (error) {
-    console.log(error);
+    console.error(
+      `An error occurred while processing the user's speech text: ${error}`,
+    );
+    throw error;
   }
 };

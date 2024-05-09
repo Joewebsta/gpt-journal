@@ -1,5 +1,5 @@
 import { SharedValue } from "react-native-reanimated";
-import CustomButton from "../PhaseButton";
+import CustomButton from "./PhaseButton";
 import SpinningIconLoader from "../SpinningIconLoader";
 
 type ProcessingPhaseButtonProps = {

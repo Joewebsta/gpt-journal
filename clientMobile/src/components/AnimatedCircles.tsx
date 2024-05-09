@@ -12,6 +12,8 @@ type AnimatedCirclesProps = {
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
+const SVG_DIMENSIONS = 320;
+
 const AnimatedCircles = ({
   activeCircleFill,
   activeCircleRadius,
@@ -21,8 +23,8 @@ const AnimatedCircles = ({
     {/* ACTIVE CIRCLE */}
     <Svg
       style={{
-        height: 320,
-        width: 320,
+        height: SVG_DIMENSIONS,
+        width: SVG_DIMENSIONS,
         position: "relative",
       }}
     >
@@ -37,8 +39,8 @@ const AnimatedCircles = ({
     {/* STANDBY CIRCLE */}
     <Svg
       style={{
-        height: 320,
-        width: 320,
+        height: SVG_DIMENSIONS,
+        width: SVG_DIMENSIONS,
         position: "absolute",
       }}
     >

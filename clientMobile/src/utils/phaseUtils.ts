@@ -1,6 +1,6 @@
 import { ConversationPhase } from "../types";
 
-export const startPhase = (
+export const updateConversationPhase = (
   phase: ConversationPhase,
   phaseText: string,
   setPhase: React.Dispatch<React.SetStateAction<ConversationPhase>>,

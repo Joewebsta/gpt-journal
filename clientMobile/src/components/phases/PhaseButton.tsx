@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Pressable, Text, View, StyleProp, ViewStyle } from "react-native";
-import { styles } from "../styles/appStyles";
+import { styles } from "../../styles/appStyles";
 
 type PhaseButtonProps = {
   onPress: () => Promise<void>;

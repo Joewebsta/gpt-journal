@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 
-export const updateMessages = (
+export const addUserAndAssistantMessages = (
   userMessage: OpenAI.ChatCompletionMessage,
   assistantMessage: OpenAI.ChatCompletionMessage,
   setMessages: React.Dispatch<

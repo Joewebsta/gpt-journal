@@ -1,6 +1,21 @@
 import * as FileSystem from "expo-file-system";
 import { Audio } from "expo-av";
 import { ConversationPhase } from "../types";
+import { updateConversationPhase } from "./phaseUtils";
+
+export const storeAndPlayAudio = async (
+  encodedMp3Data: string,
+  setPhase: React.Dispatch<React.SetStateAction<ConversationPhase>>,
+  setPhaseText: React.Dispatch<React.SetStateAction<string>>,
+) => {
+  try {
+    const path = `${FileSystem.documentDirectory}${Date.now()}.mp3`;
+    await writeAudioToFile(path, encodedMp3Data);
+    await playAudioFromPath(path, setPhase, setPhaseText);
+  } catch (error) {
+    console.error("An error occurred while playing the audio:", error);
+  }
+};
 
 export const writeAudioToFile = async (path: string, audioData: string) => {
   await FileSystem.writeAsStringAsync(path, audioData, {
@@ -14,17 +29,24 @@ export async function playAudioFromPath(
   setPhaseText: React.Dispatch<React.SetStateAction<string>>,
 ) {
   try {
-    // const { sound } = await Audio.Sound.createAsync();
     const soundObject = new Audio.Sound();
     soundObject.setOnPlaybackStatusUpdate((status) => {
       if (status.isPlaying) {
-        setPhase(ConversationPhase.Speaking);
-        setPhaseText("Press button to interrupt");
+        updateConversationPhase(
+          ConversationPhase.Speaking,
+          "Press button to interrupt",
+          setPhase,
+          setPhaseText,
+        );
       }
 
       if (status.didJustFinish) {
-        setPhase(ConversationPhase.Standby);
-        setPhaseText("Press button and start speaking");
+        updateConversationPhase(
+          ConversationPhase.Standby,
+          "Press button and start speaking",
+          setPhase,
+          setPhaseText,
+        );
       }
     });
     await soundObject.loadAsync({ uri: path });
@@ -41,19 +63,5 @@ export const checkPermission = async (
   if (permissionResponse && permissionResponse.status !== "granted") {
     console.log("Requesting permission...");
     await requestPermission();
-  }
-};
-
-export const storeAndPlayAudio = async (
-  encodedMp3Data: string,
-  setPhase: React.Dispatch<React.SetStateAction<ConversationPhase>>,
-  setPhaseText: React.Dispatch<React.SetStateAction<string>>,
-) => {
-  try {
-    const path = `${FileSystem.documentDirectory}${Date.now()}.mp3`;
-    await writeAudioToFile(path, encodedMp3Data);
-    await playAudioFromPath(path, setPhase, setPhaseText);
-  } catch (error) {
-    console.error("An error occurred while playing the audio:", error);
   }
 };

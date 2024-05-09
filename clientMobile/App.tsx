@@ -15,12 +15,12 @@ import RecognizingPhaseButton from "./src/components/phases/RecognizingPhaseButt
 import SpeakingPhaseButton from "./src/components/phases/SpeakingPhaseButton";
 import StandbyPhaseButton from "./src/components/phases/StandbyPhaseButton";
 import { CIRCLE_CONSTANTS, THERAPIST_PERSONA } from "./src/constants";
-import { processUserSpeechText } from "./src/services/speechService";
+import { processUserSpeechText } from "./src/components/services/speechService";
 import { COLORS, styles } from "./src/styles/appStyles";
 import { ConversationPhase, SupabaseResponse } from "./src/types";
 import { checkPermission, storeAndPlayAudio } from "./src/utils/audioUtils";
-import { updateMessages } from "./src/utils/messageUtils";
-import { startPhase } from "./src/utils/phaseUtils";
+import { addUserAndAssistantMessages } from "./src/utils/messageUtils";
+import { updateConversationPhase } from "./src/utils/phaseUtils";
 
 Audio.setAudioModeAsync({
   allowsRecordingIOS: true,
@@ -84,7 +84,7 @@ export default function App() {
     try {
       await checkPermission(permissionResponse, requestPermission);
       startRecognizing();
-      startPhase(
+      updateConversationPhase(
         ConversationPhase.Recognizing,
         "Press button when finished speaking",
         setPhase,
@@ -98,7 +98,7 @@ export default function App() {
   const stopSpeaking = async () => {
     try {
       stopRecognizing();
-      startPhase(
+      updateConversationPhase(
         ConversationPhase.Processing,
         "Thinking...",
         setPhase,
@@ -112,7 +112,7 @@ export default function App() {
         encodedMp3Data,
       }: SupabaseResponse = await processUserSpeechText(speechText, messages);
 
-      updateMessages(userMessage, assistantMessage, setMessages);
+      addUserAndAssistantMessages(userMessage, assistantMessage, setMessages);
       await storeAndPlayAudio(encodedMp3Data, setPhase, setPhaseText);
     } catch (error) {
       console.error("Error in stopSpeaking: ", error);
@@ -140,7 +140,7 @@ export default function App() {
       </View>
       <View style={styles.buttonContainer}>
         <View>
-          <Text style={{ fontWeight: "500" }}>{phaseText}</Text>
+          <Text style={styles.phaseText}>{phaseText}</Text>
         </View>
 
         {phase === "standby" && (
