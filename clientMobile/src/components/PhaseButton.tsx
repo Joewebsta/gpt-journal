@@ -2,13 +2,13 @@ import { ReactNode } from "react";
 import { Pressable, Text, View, StyleProp, ViewStyle } from "react-native";
 import { styles } from "../styles/appStyles";
 
-type ButtonProps = {
+type PhaseButtonProps = {
   onPress: () => Promise<void>;
   children: ReactNode;
   buttonStyle?: StyleProp<ViewStyle>;
 };
 
-const CustomButton = ({ onPress, children, buttonStyle }: ButtonProps) => (
+const PhaseButton = ({ onPress, children, buttonStyle }: PhaseButtonProps) => (
   <View>
     <Pressable style={[styles.button, buttonStyle]} onPress={onPress}>
       <Text>{children}</Text>
@@ -16,4 +16,4 @@ const CustomButton = ({ onPress, children, buttonStyle }: ButtonProps) => (
   </View>
 );
 
-export default CustomButton;
+export default PhaseButton;

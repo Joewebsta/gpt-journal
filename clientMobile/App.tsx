@@ -10,10 +10,10 @@ import {
 } from "react-native-reanimated";
 import { useVoiceRecognition } from "./hooks/useVoiceRecognition";
 import AnimatedCircles from "./src/components/AnimatedCircles";
-import ProcessingPhase from "./src/components/phases/ProcessingPhase";
-import RecognizingPhase from "./src/components/phases/RecognizingPhase";
-import SpeakingPhase from "./src/components/phases/SpeakingPhase";
-import StandbyPhase from "./src/components/phases/StandbyPhase";
+import ProcessingPhaseButton from "./src/components/phases/ProcessingPhaseButton";
+import RecognizingPhaseButton from "./src/components/phases/RecognizingPhaseButton";
+import SpeakingPhaseButton from "./src/components/phases/SpeakingPhaseButton";
+import StandbyPhaseButton from "./src/components/phases/StandbyPhaseButton";
 import {
   ACTIVE_CIRCLE_PULSE_DURATION,
   ACTIVE_CIRCLE_RADIUS,
@@ -146,7 +146,7 @@ export default function App() {
         </View>
 
         {phase === "standby" && (
-          <StandbyPhase
+          <StandbyPhaseButton
             startSpeaking={startSpeaking}
             resetConversation={resetConversation}
             messages={messages}
@@ -155,18 +155,18 @@ export default function App() {
         )}
 
         {phase === "recognizing" && (
-          <RecognizingPhase
+          <RecognizingPhaseButton
             stopSpeaking={stopSpeaking}
             activeCircleFill={activeCircleFill}
           />
         )}
 
         {phase === "processing" && (
-          <ProcessingPhase activeCircleFill={activeCircleFill} />
+          <ProcessingPhaseButton activeCircleFill={activeCircleFill} />
         )}
 
         {phase === "speaking" && (
-          <SpeakingPhase activeCircleFill={activeCircleFill} />
+          <SpeakingPhaseButton activeCircleFill={activeCircleFill} />
         )}
       </View>
     </View>

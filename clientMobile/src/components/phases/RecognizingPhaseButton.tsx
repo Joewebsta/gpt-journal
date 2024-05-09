@@ -1,15 +1,19 @@
 import { IconPlayerStopFilled } from "@tabler/icons-react-native";
 import { SharedValue } from "react-native-reanimated";
 import { COLORS } from "../../styles/appStyles";
-import CustomButton from "../CustomButton";
+import CustomButton from "../PhaseButton";
 
-type SpeakingPhaseProps = {
+type RecognizingPhaseButtonProps = {
+  stopSpeaking: () => Promise<void>;
   activeCircleFill: SharedValue<string>;
 };
 
-const SpeakingPhase = ({ activeCircleFill }: SpeakingPhaseProps) => (
+const RecognizingPhaseButton = ({
+  stopSpeaking,
+  activeCircleFill,
+}: RecognizingPhaseButtonProps) => (
   <CustomButton
-    onPress={() => Promise.resolve()}
+    onPress={stopSpeaking}
     buttonStyle={{ backgroundColor: activeCircleFill.value }}
   >
     <IconPlayerStopFilled
@@ -20,4 +24,4 @@ const SpeakingPhase = ({ activeCircleFill }: SpeakingPhaseProps) => (
   </CustomButton>
 );
 
-export default SpeakingPhase;
+export default RecognizingPhaseButton;

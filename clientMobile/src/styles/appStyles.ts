@@ -28,7 +28,7 @@ export const styles = StyleSheet.create({
   button: {
     borderRadius: 1000,
     height: 74,
-    paddingTop: 9,
+    paddingTop: 8,
     width: 74,
     display: "flex",
     alignItems: "center",

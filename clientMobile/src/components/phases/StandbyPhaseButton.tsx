@@ -3,21 +3,21 @@ import OpenAI from "openai";
 import { View } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import { COLORS } from "../../styles/appStyles";
-import CustomButton from "../CustomButton";
+import CustomButton from "../PhaseButton";
 
-type StandbyPhaseProps = {
+type StandbyPhaseButtonProps = {
   startSpeaking: () => Promise<void>;
   resetConversation: () => Promise<void>;
   messages: OpenAI.ChatCompletionMessageParam[];
   activeCircleFill: SharedValue<string>;
 };
 
-const StandbyPhase = ({
+const StandbyPhaseButton = ({
   startSpeaking,
   resetConversation,
   messages,
   activeCircleFill,
-}: StandbyPhaseProps) => (
+}: StandbyPhaseButtonProps) => (
   <View>
     <CustomButton
       onPress={startSpeaking}
@@ -44,4 +44,4 @@ const StandbyPhase = ({
   </View>
 );
 
-export default StandbyPhase;
+export default StandbyPhaseButton;

@@ -1,12 +1,14 @@
 import { SharedValue } from "react-native-reanimated";
-import CustomButton from "../CustomButton";
+import CustomButton from "../PhaseButton";
 import SpinningIconLoader from "../SpinningIconLoader";
 
-type ProcessingPhaseProps = {
+type ProcessingPhaseButtonProps = {
   activeCircleFill: SharedValue<string>;
 };
 
-const ProcessingPhase = ({ activeCircleFill }: ProcessingPhaseProps) => (
+const ProcessingPhaseButton = ({
+  activeCircleFill,
+}: ProcessingPhaseButtonProps) => (
   <CustomButton
     onPress={() => Promise.resolve()}
     buttonStyle={{ backgroundColor: activeCircleFill.value }}
@@ -15,4 +17,4 @@ const ProcessingPhase = ({ activeCircleFill }: ProcessingPhaseProps) => (
   </CustomButton>
 );
 
-export default ProcessingPhase;
+export default ProcessingPhaseButton;
