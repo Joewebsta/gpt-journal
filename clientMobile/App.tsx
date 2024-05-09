@@ -133,39 +133,42 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <AnimatedCircles
-        activeCircleFill={activeCircleFill}
-        activeCircleRadius={activeCircleRadius}
-        standbyCircleRadius={standbyCircleRadius}
-      />
-
-      <View>
-        <Text>{phaseText}</Text>
+      <View style={styles.circlesContainer}>
+        <AnimatedCircles
+          activeCircleFill={activeCircleFill}
+          activeCircleRadius={activeCircleRadius}
+          standbyCircleRadius={standbyCircleRadius}
+        />
       </View>
+      <View style={styles.buttonContainer}>
+        <View>
+          <Text style={{ fontWeight: "500" }}>{phaseText}</Text>
+        </View>
 
-      {phase === "standby" && (
-        <StandbyPhase
-          startSpeaking={startSpeaking}
-          resetConversation={resetConversation}
-          messages={messages}
-          activeCircleFill={activeCircleFill}
-        />
-      )}
+        {phase === "standby" && (
+          <StandbyPhase
+            startSpeaking={startSpeaking}
+            resetConversation={resetConversation}
+            messages={messages}
+            activeCircleFill={activeCircleFill}
+          />
+        )}
 
-      {phase === "recognizing" && (
-        <RecognizingPhase
-          stopSpeaking={stopSpeaking}
-          activeCircleFill={activeCircleFill}
-        />
-      )}
+        {phase === "recognizing" && (
+          <RecognizingPhase
+            stopSpeaking={stopSpeaking}
+            activeCircleFill={activeCircleFill}
+          />
+        )}
 
-      {phase === "processing" && (
-        <ProcessingPhase activeCircleFill={activeCircleFill} />
-      )}
+        {phase === "processing" && (
+          <ProcessingPhase activeCircleFill={activeCircleFill} />
+        )}
 
-      {phase === "speaking" && (
-        <SpeakingPhase activeCircleFill={activeCircleFill} />
-      )}
+        {phase === "speaking" && (
+          <SpeakingPhase activeCircleFill={activeCircleFill} />
+        )}
+      </View>
     </View>
   );
 }

@@ -11,9 +11,19 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-end",
     alignItems: "center",
-    paddingBottom: 60,
-    gap: 60,
+    paddingTop: 100,
+    paddingBottom: 120,
     backgroundColor: "#F8F8FA",
+  },
+  circlesContainer: {
+    display: "flex",
+    flex: 1,
+    justifyContent: "center",
+  },
+  buttonContainer: {
+    display: "flex",
+    alignItems: "center",
+    gap: 60,
   },
   button: {
     borderRadius: 1000,

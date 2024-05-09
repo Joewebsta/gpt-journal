@@ -21,8 +21,8 @@ const AnimatedCircles = ({
     {/* ACTIVE CIRCLE */}
     <Svg
       style={{
-        height: 260,
-        width: 260,
+        height: 320,
+        width: 320,
         position: "relative",
       }}
     >
@@ -37,8 +37,8 @@ const AnimatedCircles = ({
     {/* STANDBY CIRCLE */}
     <Svg
       style={{
-        height: 260,
-        width: 260,
+        height: 320,
+        width: 320,
         position: "absolute",
       }}
     >
