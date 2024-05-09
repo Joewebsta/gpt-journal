@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 
-export type supabaseResponse = {
+export type SupabaseResponse = {
   userMessage: OpenAI.ChatCompletionMessage;
   assistantMessage: OpenAI.ChatCompletionMessage;
   encodedMp3Data: string;

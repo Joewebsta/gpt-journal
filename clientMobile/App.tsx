@@ -14,16 +14,10 @@ import ProcessingPhaseButton from "./src/components/phases/ProcessingPhaseButton
 import RecognizingPhaseButton from "./src/components/phases/RecognizingPhaseButton";
 import SpeakingPhaseButton from "./src/components/phases/SpeakingPhaseButton";
 import StandbyPhaseButton from "./src/components/phases/StandbyPhaseButton";
-import {
-  ACTIVE_CIRCLE_PULSE_DURATION,
-  ACTIVE_CIRCLE_RADIUS,
-  PERSONA,
-  STANDBY_CIRCLE_RADIUS,
-  STANDBY_CIRCLE_SHRINK_DURATION,
-} from "./src/constants";
+import { CIRCLE_CONSTANTS, THERAPIST_PERSONA } from "./src/constants";
 import { processUserSpeechText } from "./src/services/speechService";
 import { COLORS, styles } from "./src/styles/appStyles";
-import { ConversationPhase, supabaseResponse } from "./src/types";
+import { ConversationPhase, SupabaseResponse } from "./src/types";
 import { checkPermission, storeAndPlayAudio } from "./src/utils/audioUtils";
 import { updateMessages } from "./src/utils/messageUtils";
 import { startPhase } from "./src/utils/phaseUtils";
@@ -38,7 +32,7 @@ export default function App() {
   const [permissionResponse, requestPermission] = Audio.usePermissions();
 
   const [messages, setMessages] = useState<OpenAI.ChatCompletionMessageParam[]>(
-    [{ role: "system", content: PERSONA }]
+    [{ role: "system", content: THERAPIST_PERSONA }]
   );
 
   const [phase, setPhase] = useState<ConversationPhase>(
@@ -46,8 +40,12 @@ export default function App() {
   );
 
   const [phaseText, setPhaseText] = useState("Press button and start speaking");
-  const standbyCircleRadius = useSharedValue<number>(STANDBY_CIRCLE_RADIUS);
-  const activeCircleRadius = useSharedValue<number>(ACTIVE_CIRCLE_RADIUS);
+  const standbyCircleRadius = useSharedValue<number>(
+    CIRCLE_CONSTANTS.STANDBY_RADIUS
+  );
+  const activeCircleRadius = useSharedValue<number>(
+    CIRCLE_CONSTANTS.ACTIVE_RADIUS
+  );
   const activeCircleFill = useSharedValue<string>(COLORS.SLATE);
 
   const {
@@ -61,12 +59,12 @@ export default function App() {
   useEffect(() => {
     if (phase === "recognizing") {
       standbyCircleRadius.value = withTiming(0, {
-        duration: STANDBY_CIRCLE_SHRINK_DURATION,
+        duration: CIRCLE_CONSTANTS.STANDBY_SHRINK_DURATION_MS,
       });
 
       activeCircleRadius.value = withRepeat(
-        withTiming(ACTIVE_CIRCLE_RADIUS + 10, {
-          duration: ACTIVE_CIRCLE_PULSE_DURATION,
+        withTiming(CIRCLE_CONSTANTS.ACTIVE_RADIUS + 10, {
+          duration: CIRCLE_CONSTANTS.ACTIVE_PULSE_DURATION_MS,
         }),
         0,
         true
@@ -77,8 +75,8 @@ export default function App() {
       activeCircleFill.value = COLORS.SLATE;
     } else if (phase === "standby" && messages.length > 1) {
       cancelAnimation(activeCircleRadius);
-      standbyCircleRadius.value = withTiming(STANDBY_CIRCLE_RADIUS);
-      activeCircleRadius.value = withTiming(ACTIVE_CIRCLE_RADIUS);
+      standbyCircleRadius.value = withTiming(CIRCLE_CONSTANTS.STANDBY_RADIUS);
+      activeCircleRadius.value = withTiming(CIRCLE_CONSTANTS.ACTIVE_RADIUS);
     }
   }, [phase]);
 
@@ -112,7 +110,7 @@ export default function App() {
         userMessage,
         assistantMessage,
         encodedMp3Data,
-      }: supabaseResponse = await processUserSpeechText(speechText, messages);
+      }: SupabaseResponse = await processUserSpeechText(speechText, messages);
 
       updateMessages(userMessage, assistantMessage, setMessages);
       await storeAndPlayAudio(encodedMp3Data, setPhase, setPhaseText);
@@ -125,7 +123,7 @@ export default function App() {
     try {
       resetRecognizerState();
       destroyRecognizer();
-      setMessages([{ role: "system", content: PERSONA }]);
+      setMessages([{ role: "system", content: THERAPIST_PERSONA }]);
     } catch (error) {
       console.error("Error in resetConversation: ", error);
     }
