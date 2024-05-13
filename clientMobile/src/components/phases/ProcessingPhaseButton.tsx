@@ -1,6 +1,6 @@
 import { SharedValue } from "react-native-reanimated";
-import CustomButton from "./PhaseButton";
 import SpinningIconLoader from "../SpinningIconLoader";
+import CustomButton from "./PhaseButton";
 
 type ProcessingPhaseButtonProps = {
   activeCircleFill: SharedValue<string>;

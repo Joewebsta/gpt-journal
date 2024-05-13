@@ -19,7 +19,26 @@ const AnimatedCircles = ({
   activeCircleRadius,
   standbyCircleRadius,
 }: AnimatedCirclesProps) => (
-  <View style={{ position: "relative" }}>
+  // DEFAULT BACKGROUND CIRCLE
+  <View
+    style={{
+      position: "relative",
+      justifyContent: "center",
+      alignItems: "center",
+    }}
+  >
+    <View
+      style={{
+        position: "absolute",
+        width: 300,
+        height: 300,
+        borderWidth: 10,
+        borderColor: COLORS.SLATE,
+        borderStyle: "solid",
+        borderRadius: 160,
+        backgroundColor: COLORS.SILVER,
+      }}
+    ></View>
     {/* ACTIVE CIRCLE */}
     <Svg
       style={{

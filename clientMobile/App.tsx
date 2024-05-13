@@ -14,8 +14,8 @@ import ProcessingPhaseButton from "./src/components/phases/ProcessingPhaseButton
 import RecognizingPhaseButton from "./src/components/phases/RecognizingPhaseButton";
 import SpeakingPhaseButton from "./src/components/phases/SpeakingPhaseButton";
 import StandbyPhaseButton from "./src/components/phases/StandbyPhaseButton";
-import { CIRCLE_CONSTANTS, THERAPIST_PERSONA } from "./src/constants";
 import { processUserSpeechText } from "./src/components/services/speechService";
+import { CIRCLE_CONSTANTS, THERAPIST_PERSONA } from "./src/constants";
 import { COLORS, styles } from "./src/styles/appStyles";
 import { ConversationPhase, SupabaseResponse } from "./src/types";
 import { checkPermission, storeAndPlayAudio } from "./src/utils/audioUtils";
@@ -38,8 +38,10 @@ export default function App() {
   const [phase, setPhase] = useState<ConversationPhase>(
     ConversationPhase.Standby
   );
-
   const [phaseText, setPhaseText] = useState("Press button and start speaking");
+
+  const [soundObj, setSoundObj] = useState<Audio.Sound | null>(null);
+
   const standbyCircleRadius = useSharedValue<number>(
     CIRCLE_CONSTANTS.STANDBY_RADIUS
   );
@@ -113,7 +115,12 @@ export default function App() {
       }: SupabaseResponse = await processUserSpeechText(speechText, messages);
 
       addUserAndAssistantMessages(userMessage, assistantMessage, setMessages);
-      await storeAndPlayAudio(encodedMp3Data, setPhase, setPhaseText);
+      await storeAndPlayAudio(
+        encodedMp3Data,
+        setSoundObj,
+        setPhase,
+        setPhaseText
+      );
     } catch (error) {
       console.error("Error in stopSpeaking: ", error);
     }
@@ -164,7 +171,12 @@ export default function App() {
         )}
 
         {phase === "speaking" && (
-          <SpeakingPhaseButton activeCircleFill={activeCircleFill} />
+          <SpeakingPhaseButton
+            activeCircleFill={activeCircleFill}
+            soundObj={soundObj}
+            setPhase={setPhase}
+            setPhaseText={setPhaseText}
+          />
         )}
       </View>
     </View>
