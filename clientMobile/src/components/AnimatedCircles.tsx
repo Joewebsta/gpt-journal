@@ -1,56 +1,51 @@
 import React from "react";
 import { View } from "react-native";
-import Animated, { SharedValue } from "react-native-reanimated";
-import Svg, { Circle } from "react-native-svg";
 import { COLORS } from "../styles/appStyles";
+import { MotiView } from "moti";
 
-type AnimatedCirclesProps = {
-  activeCircleFill: SharedValue<string>;
-  activeCircleRadius: SharedValue<number>;
-  standbyCircleRadius: SharedValue<number>;
-};
-
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-
-const SVG_DIMENSIONS = 320;
-
-const AnimatedCircles = ({
-  activeCircleFill,
-  activeCircleRadius,
-  standbyCircleRadius,
-}: AnimatedCirclesProps) => (
-  <View style={{ position: "relative" }}>
+const AnimatedCircles = ({}) => (
+  <View
+    style={{
+      position: "relative",
+      justifyContent: "center",
+      alignItems: "center",
+    }}
+  >
     {/* ACTIVE CIRCLE */}
-    <Svg
+    <MotiView
+      from={{ width: 300, height: 300 }}
+      // animate={{ opacity: isLoading ? 1 : 0 }}
+      animate={{ width: 300, height: 300 }}
+      // transition={{
+      //   type: "timing",
+      //   duration: 1000,
+      //   // repeat: 40,
+      // }}
+      // exit={{ opacity: 0 }}
       style={{
-        height: SVG_DIMENSIONS,
-        width: SVG_DIMENSIONS,
-        position: "relative",
+        justifyContent: "center",
+        borderRadius: 150,
+        backgroundColor: COLORS.SLATE,
       }}
-    >
-      <AnimatedCircle
-        cx="50%"
-        cy="50%"
-        fill={activeCircleFill.value}
-        r={activeCircleRadius}
-      />
-    </Svg>
+    />
 
     {/* STANDBY CIRCLE */}
-    <Svg
+    <MotiView
+      from={{ width: 280, height: 280 }}
+      // animate={{ opacity: isLoading ? 1 : 0 }}
+      animate={{ width: 280, height: 280 }}
+      // transition={{
+      //   type: "timing",
+      //   duration: 1000,
+      //   // repeat: 40,
+      // }}
+      // exit={{ opacity: 0 }}
       style={{
-        height: SVG_DIMENSIONS,
-        width: SVG_DIMENSIONS,
+        borderRadius: 150,
+        backgroundColor: COLORS.SILVER,
         position: "absolute",
       }}
-    >
-      <AnimatedCircle
-        cx="50%"
-        cy="50%"
-        fill={COLORS.SILVER}
-        r={standbyCircleRadius}
-      />
-    </Svg>
+    />
   </View>
 );
 
