@@ -5,7 +5,7 @@ import { COLORS } from "../../styles/appStyles";
 import { ConversationPhase } from "../../types";
 import { stopAudio } from "../../utils/audioUtils";
 import { updateConversationPhase } from "../../utils/phaseUtils";
-import CustomButton from "./PhaseButton";
+import PhaseButton from "./PhaseButton";
 
 type SpeakingPhaseButtonProps = {
   activeCircleFill: SharedValue<string>;
@@ -31,7 +31,7 @@ const SpeakingPhaseButton = ({
   };
 
   return (
-    <CustomButton
+    <PhaseButton
       onPress={handleOnPress}
       buttonStyle={{ backgroundColor: activeCircleFill.value }}
     >
@@ -40,7 +40,7 @@ const SpeakingPhaseButton = ({
         fill={COLORS.SILVER}
         size={30}
       />
-    </CustomButton>
+    </PhaseButton>
   );
 };
 

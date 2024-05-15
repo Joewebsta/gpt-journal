@@ -3,7 +3,7 @@ import OpenAI from "openai";
 import { View } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import { COLORS } from "../../styles/appStyles";
-import CustomButton from "./PhaseButton";
+import PhaseButton from "./PhaseButton";
 
 type StandbyPhaseButtonProps = {
   startSpeaking: () => Promise<void>;
@@ -19,17 +19,17 @@ const StandbyPhaseButton = ({
   activeCircleFill,
 }: StandbyPhaseButtonProps) => (
   <View>
-    <CustomButton
+    <PhaseButton
       onPress={startSpeaking}
       buttonStyle={{
         backgroundColor: activeCircleFill.value,
       }}
     >
       <IconMicrophone color={COLORS.SILVER} size={30} />
-    </CustomButton>
+    </PhaseButton>
 
     {messages.length > 1 && (
-      <CustomButton
+      <PhaseButton
         onPress={resetConversation}
         buttonStyle={{
           backgroundColor: COLORS.SILVER,
@@ -39,7 +39,7 @@ const StandbyPhaseButton = ({
         }}
       >
         <IconRefresh color={COLORS.SLATE} size={30} />
-      </CustomButton>
+      </PhaseButton>
     )}
   </View>
 );
