@@ -61,14 +61,13 @@ export default function App() {
   useEffect(() => {
     if (phase === "standby") {
       // standbyAnimationState.transitionTo("standby");
-      activeAnimationState.transitionTo("standby");
+      // activeAnimationState.transitionTo("standby");
     } else if (phase === "recognizing") {
       // standbyAnimationState.transitionTo("recognizing");
-      activeAnimationState.transitionTo("recognizing");
+      // activeAnimationState.transitionTo("recognizing");
       // standbyCircleRadius.value = withTiming(0, {
       //   duration: CIRCLE_CONSTANTS.STANDBY_SHRINK_DURATION_MS,
       // });
-
       // activeCircleRadius.value = withRepeat(
       //   withTiming(CIRCLE_CONSTANTS.ACTIVE_RADIUS + 10, {
       //     duration: CIRCLE_CONSTANTS.ACTIVE_PULSE_DURATION_MS,
@@ -164,24 +163,24 @@ export default function App() {
   //   />
   // );
 
-  const standbyAnimationState = useAnimationState({
-    standby: { height: 280, width: 280 },
-    recognizing: { height: 0, width: 0 },
-  });
+  // const standbyAnimationState = useAnimationState({
+  //   standby: { height: 280, width: 280 },
+  //   recognizing: { height: 0, width: 0 },
+  // });
 
-  const activeAnimationState = useAnimationState({
-    standby: { height: 300, width: 300, backgroundColor: COLORS.SLATE },
-    recognizing: { height: 310, width: 310, backgroundColor: COLORS.SLATE },
-    processing: { height: 310, width: 310, backgroundColor: COLORS.LAVENDER },
+  // const activeAnimationState = useAnimationState({
+  //   standby: { height: 300, width: 300, backgroundColor: COLORS.SLATE },
+  //   recognizing: { height: 310, width: 310, backgroundColor: COLORS.SLATE },
+  //   processing: { height: 310, width: 310, backgroundColor: COLORS.LAVENDER },
+  // });
+
+  const activeAnimationState1 = useAnimationState({
+    from: { height: 300, width: 300 },
+    to: { height: 310, width: 310 },
   });
 
   return (
     <View style={styles.container}>
-      {/* <Pressable onPress={() => setVisible(false)}>
-        <Text>Press me</Text>
-      </Pressable>
-      <AnimatePresence>{visible && <FadeIn />}</AnimatePresence> */}
-
       <View style={styles.circlesContainer}>
         <View
           style={{
@@ -191,84 +190,128 @@ export default function App() {
           }}
         >
           {/* ACTIVE CIRCLE */}
-          <MotiView
-            from={{
-              width: 300,
-              height: 300,
-            }}
-            animate={{
-              backgroundColor:
-                phase === "standby" || phase == "recognizing"
-                  ? COLORS.SLATE
-                  : COLORS.LAVENDER,
-              height: phase === "standby" ? 300 : 310,
-              width: phase === "standby" ? 300 : 310,
-            }}
-            transition={{
-              height: {
-                type: "timing",
-                loop: phase === "standby" ? false : true,
-                duration: 500,
-              },
-              width: {
-                type: "timing",
-                loop: phase === "standby" ? false : true,
-                duration: 500,
-              },
-            }}
-            style={{
-              justifyContent: "center",
-              borderRadius: 160,
-              backgroundColor: COLORS.SLATE,
-              width: 300,
-              height: 300,
-            }}
-          />
-          {/* <MotiView
-            state={activeAnimationState}
-            transition={{
-              type: "timing",
-              height: {
-                loop:
-                  phase === "recognizing" || phase === "processing"
-                    ? true
-                    : false,
-              },
-              width: {
-                loop:
-                  phase === "recognizing" || phase === "processing"
-                    ? true
-                    : false,
-              },
-            }}
-            style={{
-              justifyContent: "center",
-              borderRadius: 160,
-              backgroundColor: COLORS.SLATE,
-              width: 300,
-              height: 300,
-            }}
-          /> */}
 
-          {/* STANDBY CIRCLE */}
-          <MotiView
-            // state={standbyAnimationState}
-            from={{ width: 280, height: 280 }}
-            animate={{
-              width: phase === "standby" ? 280 : 0,
-              height: phase === "standby" ? 280 : 0,
-            }}
-            transition={{
-              type: "timing",
-            }}
-            style={{
-              borderRadius: 150,
-              backgroundColor: COLORS.SILVER,
-              position: "absolute",
-              width: 280,
-              height: 280,
-            }}
-          />
+          {phase === "standby" && (
+            <View
+              style={{
+                position: "relative",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <MotiView
+                from={{
+                  width: 300,
+                  height: 300,
+                }}
+                animate={{}}
+                transition={{}}
+                style={{
+                  justifyContent: "center",
+                  borderRadius: 160,
+                  backgroundColor: COLORS.SLATE,
+                  width: 300,
+                  height: 300,
+                  position: "absolute",
+                }}
+              />
+            </View>
+          )}
+          <AnimatePresence>
+            {phase === "recognizing" && (
+              <MotiView
+                from={{
+                  width: 300,
+                  height: 300,
+                }}
+                animate={{
+                  width: 310,
+                  height: 310,
+                }}
+                transition={{
+                  type: "timing",
+                  duration: 500,
+                  loop: true,
+                }}
+                exit={{
+                  width: 300,
+                  height: 300,
+                }}
+                style={{
+                  justifyContent: "center",
+                  borderRadius: 160,
+                  backgroundColor: COLORS.SLATE,
+                  width: 300,
+                  height: 300,
+                  position: "absolute",
+                }}
+              />
+            )}
+          </AnimatePresence>
+          {phase === "processing" && (
+            <MotiView
+              from={{
+                width: 300,
+                height: 300,
+                backgroundColor: COLORS.SLATE,
+              }}
+              animate={{
+                width: 310,
+                height: 310,
+                backgroundColor: COLORS.LAVENDER,
+              }}
+              transition={{
+                width: {
+                  type: "timing",
+                  duration: 500,
+                  loop: true,
+                },
+                height: {
+                  type: "timing",
+                  duration: 500,
+                  loop: true,
+                },
+              }}
+              style={{
+                justifyContent: "center",
+                borderRadius: 160,
+                backgroundColor: COLORS.SLATE,
+                width: 300,
+                height: 300,
+              }}
+            />
+          )}
+          {phase === "speaking" && (
+            <MotiView
+              from={{
+                width: 300,
+                height: 300,
+              }}
+              animate={{
+                width: 310,
+                height: 310,
+              }}
+              transition={{
+                width: {
+                  type: "timing",
+                  duration: 500,
+                  loop: true,
+                },
+                height: {
+                  type: "timing",
+                  duration: 500,
+                  loop: true,
+                },
+              }}
+              style={{
+                justifyContent: "center",
+                borderRadius: 160,
+                backgroundColor: COLORS.LAVENDER,
+                width: 300,
+                height: 300,
+              }}
+            />
+          )}
         </View>
       </View>
       <View style={styles.buttonContainer}>
